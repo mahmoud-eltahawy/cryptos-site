@@ -5,6 +5,8 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
     use crate::app::DB;
     let id = DB
         .users
+        .lock()
+        .unwrap()
         .iter()
         .find(|x| x.name == username)
         .and_then(|user| {
@@ -43,7 +45,7 @@ pub fn Login() -> impl IntoView {
                 <div class="grid grid-cols-1 gap-2 my-10">
                     <label
                         class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
-                        for="username"
+                        for="password"
                     >"كلمة السر"</label>
                     <input
                         class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"

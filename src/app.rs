@@ -1,5 +1,9 @@
-use std::sync::LazyLock;
+use std::sync::{LazyLock, Mutex};
 
+use crate::app::{
+    dashboard::{AddUser, Dashboard},
+    login::Login,
+};
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
@@ -8,14 +12,14 @@ use leptos_router::{
     path,
 };
 use navbar::Navbar;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::app::{dashboard::Dashboard, login::Login};
 
 mod dashboard;
 mod login;
 mod navbar;
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
 enum Level {
     Admin,
     User,
@@ -29,18 +33,18 @@ struct User {
 }
 
 struct Db {
-    users: Vec<User>,
+    users: Mutex<Vec<User>>,
 }
 
 impl Db {
     fn new() -> Self {
         Db {
-            users: vec![User {
+            users: Mutex::new(vec![User {
                 id: Uuid::new_v4(),
                 name: String::from("admin"),
                 password: password_auth::generate_hash("admin"),
                 level: Level::Admin,
-            }],
+            }]),
         }
     }
 }
@@ -50,7 +54,7 @@ static DB: LazyLock<Db> = LazyLock::new(Db::new);
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
-        <html lang="en">
+        <html lang="ar" dir="rtl">
             <head>
                 <AutoReload options=options.clone() />
                 <HydrationScripts options islands=true/>
@@ -78,6 +82,7 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
                     <Route path=path!("/dashboard/:id") view=Dashboard/>
+                    <Route path=path!("/dashboard/addUser/:id") view=AddUser/>
                 </Routes>
             </main>
         </Router>

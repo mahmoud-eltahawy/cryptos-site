@@ -5,7 +5,7 @@ pub fn Navbar() -> impl IntoView {
     view! {
         <div class="flex gap-5">
             <Logo/>
-            <button class="border-2 rounded-lg p-1 hover:bg-green-700">عرض العقارات</button>
+            <button class="text-xl border-2 rounded-lg p-1 hover:bg-green-700">عرض العقارات</button>
             <Login/>
         </div>
     }
