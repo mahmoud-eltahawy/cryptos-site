@@ -10,8 +10,9 @@ use leptos_router::{
 use navbar::Navbar;
 use uuid::Uuid;
 
-use crate::app::login::LoginPage;
+use crate::app::{dashboard::Dashboard, login::Login};
 
+mod dashboard;
 mod login;
 mod navbar;
 
@@ -75,18 +76,11 @@ pub fn App() -> impl IntoView {
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("/") view=HomePage/>
-                    <Route path=StaticSegment("/login") view=LoginPage/>
+                    <Route path=StaticSegment("/login") view=Login/>
                     <Route path=path!("/dashboard/:id") view=Dashboard/>
                 </Routes>
             </main>
         </Router>
-    }
-}
-
-#[island]
-fn Dashboard() -> impl IntoView {
-    view! {
-        "dashboard"
     }
 }
 

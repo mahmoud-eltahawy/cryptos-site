@@ -22,7 +22,7 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
 }
 
 #[component]
-pub fn LoginPage() -> impl IntoView {
+pub fn Login() -> impl IntoView {
     let login_ac = ServerAction::<Login>::new();
 
     view! {
