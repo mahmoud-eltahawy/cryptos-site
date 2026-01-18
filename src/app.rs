@@ -1,7 +1,7 @@
 use std::sync::{LazyLock, Mutex};
 
 use crate::app::{
-    dashboard::{Dashboard, add_user::AddUser, remove_user::RemoveUser},
+    dashboard::{Dashboard, add_user::AddUser, manage_user::ManageUser, update_user::UpdateUser},
     login::Login,
 };
 use leptos::prelude::*;
@@ -32,11 +32,34 @@ struct User {
     level: Level,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SecureUser {
+    id: Uuid,
+    name: String,
+    level: Level,
+}
+
+impl From<&User> for SecureUser {
+    fn from(
+        User {
+            id,
+            name,
+            password: _,
+            level,
+        }: &User,
+    ) -> Self {
+        Self {
+            id: *id,
+            name: name.clone(),
+            level: level.clone(),
+        }
+    }
+}
+
 struct Db {
     users: Mutex<Vec<User>>,
 }
 
-#[cfg(feature = "ssr")]
 impl Db {
     fn new() -> Self {
         Db {
@@ -70,7 +93,6 @@ impl Db {
     }
 }
 
-#[cfg(feature = "ssr")]
 static DB: LazyLock<Db> = LazyLock::new(Db::new);
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -103,9 +125,10 @@ pub fn App() -> impl IntoView {
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
-                    <Route path=path!("/dashboard/:id") view=Dashboard/>
+                    <Route path=path!("/dashboard/updateUser/:targetId/:userId") view=UpdateUser/>
                     <Route path=path!("/dashboard/addUser/:id") view=AddUser/>
-                    <Route path=path!("/dashboard/removeUser/:id") view=RemoveUser/>
+                    <Route path=path!("/dashboard/manageUser/:id") view=ManageUser/>
+                    <Route path=path!("/dashboard/:id") view=Dashboard/>
                 </Routes>
             </main>
         </Router>

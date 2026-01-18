@@ -2,8 +2,11 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
+use crate::app::SecureUser;
+
 pub mod add_user;
-pub mod remove_user;
+pub mod manage_user;
+pub mod update_user;
 
 #[component]
 pub fn Dashboard() -> impl IntoView {
@@ -12,7 +15,7 @@ pub fn Dashboard() -> impl IntoView {
     view! {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-stretch">
             <Card name="اضافة مستخدم" href={format!("/dashboard/addUser/{}",user_id().unwrap_or("".to_string()))}/>
-            <Card name="حذف مستخدم" href={format!("/dashboard/removeUser/{}",user_id().unwrap_or("".to_string()))}/>
+            <Card name="ادارة المستخدمين" href={format!("/dashboard/manageUser/{}",user_id().unwrap_or("".to_string()))}/>
         </div>
     }
 }
@@ -39,4 +42,21 @@ async fn get_users_names() -> Result<Vec<(Uuid, String)>, ServerFnError> {
         .map(|x| (x.id, x.name.clone()))
         .collect::<Vec<_>>();
     Ok(xs)
+}
+
+#[server]
+async fn get_user_by_id(id: uuid::Uuid) -> Result<SecureUser, ServerFnError> {
+    let user = crate::app::DB
+        .users
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|x| x.id == id)
+        .map(SecureUser::from);
+    let Some(user) = user else {
+        return Err(ServerFnError::ServerError(
+            "could not find user with id".to_string(),
+        ));
+    };
+    Ok(user)
 }

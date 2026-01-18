@@ -11,12 +11,12 @@ async fn remove_user(id: Uuid, target_id: Uuid) -> Result<(), ServerFnError> {
         .lock()
         .unwrap()
         .retain(|x| x.id != target_id);
-    leptos_axum::redirect(&format!("/dashboard/removeUser/{}", id));
+    leptos_axum::redirect(&format!("/dashboard/manageUser/{}", id));
     Ok(())
 }
 
 #[component]
-pub fn RemoveUser() -> impl IntoView {
+pub fn ManageUser() -> impl IntoView {
     let users_res = Resource::new(|| (), move |_| get_users_names());
     let users = move || users_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_user = ServerAction::<RemoveUser>::new();
@@ -32,11 +32,15 @@ pub fn RemoveUser() -> impl IntoView {
             let((target_id,name))
         >
             <ActionForm action={remove_user}>
-                <div class="grid grid-cols-3 gap-5 text-center m-5">
+                <div class="grid grid-cols-5 gap-5 text-center m-5">
                     <input class="hidden w-1 h-1" name="target_id" value={target_id.to_string()}/>
                     <input class="hidden w-1 h-1" name="id" value={user_id}/>
-                    <h3 class="text-xl col-span-2">{name}</h3>
+                    <h3 class="text-xl col-span-3">{name}</h3>
                     <input class="text-red-800 hover:text-red-400 border-2 rounded-lg col-span-1" type="submit" value="حذف"/>
+                    <a
+                        class="text-lime-800 hover:text-lime-400 border-2 rounded-lg col-span-1"
+                        href={move || format!("/dashboard/updateUser/{}/{}",target_id,user_id().unwrap_or("".to_string()))}
+                    >"تحديث"</a>
                 </div>
             </ActionForm>
         </For>
