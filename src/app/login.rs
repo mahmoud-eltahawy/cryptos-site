@@ -26,26 +26,34 @@ pub fn LoginPage() -> impl IntoView {
     let login_ac = ServerAction::<Login>::new();
 
     view! {
-        <div class="border-5 rounded-lg m-20 p-5 text-center">
+        <div class="grid grid-cols-1 gap-5 text-center border-5 rounded-lg my-10 mx-5 p-1 md:p-3 lg:p-5">
             <ActionForm action={login_ac}>
-                <div class="grid grid-cols-1">
-                    <label class="text-2xl">"اسم المستخدم"</label>
+                <div class="grid grid-cols-1 gap-2 my-10">
+                    <label
+                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                        for="username"
+                    >"اسم المستخدم"</label>
                     <input
-                        class="text-center my-5 mx-20 p-5 border-2 rounded-lg"
+                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
                         type="text"
                         name="username"
+                        id="username"
                     />
                 </div>
-                <div class="grid grid-cols-1">
-                    <label class="text-2xl">"كلمة السر"</label>
+                <div class="grid grid-cols-1 gap-2 my-10">
+                    <label
+                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                        for="username"
+                    >"كلمة السر"</label>
                     <input
-                        class="text-center my-5 mx-20 p-5 border-2 rounded-lg"
+                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
                         type="password"
                         name="password"
+                        id="password"
                     />
                 </div>
                 <input
-                    class="text-center my-5 mx-20 p-5 border-2 rounded-lg hover:text-3xl hover:bg-green-600 hover:cursor-pointer text-xl disabled:text-sm disabled:text-slate-300"
+                    class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     type="submit"
                     value="تأكيد"
                 />

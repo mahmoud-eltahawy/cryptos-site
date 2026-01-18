@@ -58,7 +58,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
             </head>
-            <body class="bg-gradient-to-r from-sky-950 to-violet-200 bg-cover">
+            <body class="bg-gradient-to-r from-sky-950 to-violet-200 bg-cover text-sm md:text-base lg:text-lg">
                 <App/>
             </body>
         </html>
