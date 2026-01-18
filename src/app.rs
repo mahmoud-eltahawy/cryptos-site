@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use leptos::{ev::Event, prelude::*};
+use leptos::prelude::*;
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
     StaticSegment,
@@ -10,6 +10,9 @@ use leptos_router::{
 use navbar::Navbar;
 use uuid::Uuid;
 
+use crate::app::login::LoginPage;
+
+mod login;
 mod navbar;
 
 enum Level {
@@ -55,7 +58,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
             </head>
-            <body>
+            <body class="bg-gradient-to-r from-sky-950 to-violet-200 bg-cover">
                 <App/>
             </body>
         </html>
@@ -77,82 +80,6 @@ pub fn App() -> impl IntoView {
                 </Routes>
             </main>
         </Router>
-    }
-}
-
-#[server]
-async fn login(username: String, password: String) -> Result<(), ServerFnError> {
-    let id = DB
-        .users
-        .iter()
-        .find(|x| x.name == username)
-        .and_then(|user| {
-            password_auth::verify_password(password, &user.password)
-                .ok()
-                .map(|_| user.id)
-        });
-    let Some(id) = id else {
-        return Err(ServerFnError::Args(
-            "username or password is wrong".to_string(),
-        ));
-    };
-    leptos_axum::redirect(&format!("/dashboard/{}", id));
-    Ok(())
-}
-const MINIMUM_USERNAME_LEN: usize = 3;
-const MINIMUM_PASSWORD_LEN: usize = 3;
-
-#[island]
-fn LoginPage() -> impl IntoView {
-    let username = RwSignal::new(String::new());
-    let password = RwSignal::new(String::new());
-    let on_username = move |ev: Event| {
-        let value = event_target_value(&ev);
-        *username.write() = value;
-    };
-    let on_password = move |ev: Event| {
-        let value = event_target_value(&ev);
-        *password.write() = value;
-    };
-    let valid_username = move || username.read().len() > MINIMUM_USERNAME_LEN;
-    let valid_password = move || password.read().len() > MINIMUM_PASSWORD_LEN;
-    let valid_login = move || valid_username() && valid_password();
-
-    let login_ac = ServerAction::<Login>::new();
-
-    view! {
-        <div class="border-5 rounded-lg m-20 p-5 text-center">
-            <ActionForm action={login_ac}>
-                <div class="grid grid-cols-1">
-                    <label class="text-2xl">"اسم المستخدم"</label>
-                    <input
-                        style={move || if valid_username() {""} else {"color:red;"}}
-                        on:input={on_username}
-                        class="text-center my-5 mx-20 p-5 border-2 rounded-lg"
-                        type="text"
-                        name="username"
-                        value={move|| username.get()}
-                    />
-                </div>
-                <div class="grid grid-cols-1">
-                    <label class="text-2xl">"كلمة السر"</label>
-                    <input
-                        style={move || if valid_password() {""} else {"color:red;"}}
-                        on:input={on_password}
-                        class="text-center my-5 mx-20 p-5 border-2 rounded-lg"
-                        type="password"
-                        name="password"
-                        value={move|| password.get()}
-                    />
-                </div>
-                <input
-                    prop:disabled={move || !valid_login()}
-                    class="text-center my-5 mx-20 p-5 border-2 rounded-lg hover:text-3xl hover:bg-green-600 hover:cursor-pointer text-xl disabled:text-sm disabled:text-slate-300"
-                    type="submit"
-                    value="تأكيد"
-                />
-            </ActionForm>
-        </div>
     }
 }
 
