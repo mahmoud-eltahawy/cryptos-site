@@ -14,7 +14,6 @@ pub fn Dashboard() -> impl IntoView {
     let user_id = move || params.with(|p| p.get("id"));
     view! {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-stretch">
-            <Card name="اضافة مستخدم" href={format!("/dashboard/addUser/{}",user_id().unwrap_or("".to_string()))}/>
             <Card name="ادارة المستخدمين" href={format!("/dashboard/manageUser/{}",user_id().unwrap_or("".to_string()))}/>
         </div>
     }

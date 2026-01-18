@@ -45,5 +45,11 @@ pub fn ManageUser() -> impl IntoView {
             </ActionForm>
         </For>
         </Suspense>
+        <div class="grid grid-cols-1 text-center">
+            <a
+                href={move || format!("/dashboard/addUser/{}",user_id().unwrap_or("".to_string()))}
+                class="text-violet-800 hover:text-violet-500 border-2 rounded-lg w-5/6 m-5 p-2 text-xl hover:text-2xl"
+            >"+ اضافة +"</a>
+        </div>
     }
 }
