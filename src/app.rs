@@ -1,7 +1,7 @@
 use std::sync::{LazyLock, Mutex};
 
 use crate::app::{
-    dashboard::{AddUser, Dashboard},
+    dashboard::{Dashboard, add_user::AddUser, remove_user::RemoveUser},
     login::Login,
 };
 use leptos::prelude::*;
@@ -36,19 +36,41 @@ struct Db {
     users: Mutex<Vec<User>>,
 }
 
+#[cfg(feature = "ssr")]
 impl Db {
     fn new() -> Self {
         Db {
-            users: Mutex::new(vec![User {
-                id: Uuid::new_v4(),
-                name: String::from("admin"),
-                password: password_auth::generate_hash("admin"),
-                level: Level::Admin,
-            }]),
+            users: Mutex::new(vec![
+                User {
+                    id: Uuid::new_v4(),
+                    name: String::from("admin"),
+                    password: password_auth::generate_hash("admin"),
+                    level: Level::Admin,
+                },
+                User {
+                    id: Uuid::new_v4(),
+                    name: String::from("احمد"),
+                    password: password_auth::generate_hash("ahmed"),
+                    level: Level::User,
+                },
+                User {
+                    id: Uuid::new_v4(),
+                    name: String::from("مصطفي"),
+                    password: password_auth::generate_hash("mostafa"),
+                    level: Level::User,
+                },
+                User {
+                    id: Uuid::new_v4(),
+                    name: String::from("علي"),
+                    password: password_auth::generate_hash("ali"),
+                    level: Level::User,
+                },
+            ]),
         }
     }
 }
 
+#[cfg(feature = "ssr")]
 static DB: LazyLock<Db> = LazyLock::new(Db::new);
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -83,6 +105,7 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("/login") view=Login/>
                     <Route path=path!("/dashboard/:id") view=Dashboard/>
                     <Route path=path!("/dashboard/addUser/:id") view=AddUser/>
+                    <Route path=path!("/dashboard/removeUser/:id") view=RemoveUser/>
                 </Routes>
             </main>
         </Router>
