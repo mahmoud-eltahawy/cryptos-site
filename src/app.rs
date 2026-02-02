@@ -3,6 +3,7 @@ use std::sync::{LazyLock, Mutex};
 use crate::app::{
     dashboard::{
         Dashboard,
+        manage_estates::{ManageEstates, add_estate::AddEstate, update_estate::UpdateEstate},
         manage_user::{ManageUser, add_user::AddUser, update_user::UpdateUser},
     },
     login::Login,
@@ -36,6 +37,15 @@ struct User {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+struct Estate {
+    id: Uuid,
+    name: String,
+    address: String,
+    image_url: String,
+    price_in_cents: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SecureUser {
     id: Uuid,
     name: String,
@@ -61,6 +71,7 @@ impl From<&User> for SecureUser {
 
 struct Db {
     users: Mutex<Vec<User>>,
+    estates: Mutex<Vec<Estate>>,
 }
 
 impl Db {
@@ -90,6 +101,22 @@ impl Db {
                     name: String::from("علي"),
                     password: password_auth::generate_hash("ali"),
                     level: Level::User,
+                },
+            ]),
+            estates: Mutex::new(vec![
+                Estate {
+                    id: Uuid::new_v4(),
+                    name: String::from("villa 1"),
+                    address: String::from("elmaadi"),
+                    image_url: String::from("url 1"),
+                    price_in_cents: 4_000_000_00,
+                },
+                Estate {
+                    id: Uuid::new_v4(),
+                    name: String::from("villa 2"),
+                    address: String::from("elzamalek"),
+                    image_url: String::from("url 2"),
+                    price_in_cents: 4_000_000_00,
                 },
             ]),
         }
@@ -129,8 +156,11 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
                     <Route path=path!("/dashboard/updateUser/:targetId/:userId") view=UpdateUser/>
+                    <Route path=path!("/dashboard/updateEstate/:targetId/:userId") view=UpdateEstate/>
                     <Route path=path!("/dashboard/addUser/:id") view=AddUser/>
                     <Route path=path!("/dashboard/manageUser/:id") view=ManageUser/>
+                    <Route path=path!("/dashboard/manageEstates/:id") view=ManageEstates/>
+                    <Route path=path!("/dashboard/addEstate/:id") view=AddEstate/>
                     <Route path=path!("/dashboard/:id") view=Dashboard/>
                 </Routes>
             </main>
