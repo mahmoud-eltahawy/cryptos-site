@@ -4,9 +4,7 @@ use uuid::Uuid;
 
 use crate::app::SecureUser;
 
-pub mod add_user;
 pub mod manage_user;
-pub mod update_user;
 
 #[component]
 pub fn Dashboard() -> impl IntoView {

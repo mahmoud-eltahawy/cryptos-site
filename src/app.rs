@@ -1,7 +1,10 @@
 use std::sync::{LazyLock, Mutex};
 
 use crate::app::{
-    dashboard::{Dashboard, add_user::AddUser, manage_user::ManageUser, update_user::UpdateUser},
+    dashboard::{
+        Dashboard,
+        manage_user::{ManageUser, add_user::AddUser, update_user::UpdateUser},
+    },
     login::Login,
 };
 use leptos::prelude::*;

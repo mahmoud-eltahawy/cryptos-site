@@ -4,6 +4,9 @@ use uuid::Uuid;
 
 use crate::app::dashboard::get_users_names;
 
+pub mod add_user;
+pub mod update_user;
+
 #[server]
 async fn remove_user(id: Uuid, target_id: Uuid) -> Result<(), ServerFnError> {
     crate::app::DB
