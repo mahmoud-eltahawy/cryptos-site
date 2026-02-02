@@ -108,7 +108,7 @@ impl Db {
                     id: Uuid::new_v4(),
                     name: String::from("villa 1"),
                     address: String::from("elmaadi"),
-                    image_url: String::from("url 1"),
+                    image_url: String::from(""),
                     price_in_cents: 4_000_000_00,
                 },
                 Estate {

@@ -40,20 +40,30 @@ pub fn ManageEstates() -> impl IntoView {
             let(Estate { id, name, address, image_url, price_in_cents })
         >
             <ActionForm action={remove_estate}>
-                <div class="grid grid-cols-5 gap-5 text-center m-5">
+                <div class="grid grid-cols-8 gap-5 text-center m-5">
                     <input class="hidden" name="id" value={user_id}/>
                     <input class="hidden" name="target_id" value={id.to_string()}/>
-                    <h3 class="text-xl col-span-3">{name}</h3>
-                    <input class="text-red-800 hover:text-red-400 border-2 rounded-lg col-span-1" type="submit" value="حذف"/>
+                    <div class="h-64 text-blue-600 font-bold grid grid-cols-2 col-span-6 text-xl border-2 rounded-lg">
+                        <img
+                             class="border-1 rounded-lg m-2"
+                            src={image_url} alt="view image"
+                        />
+                        <div class="text-center text-black grid-cols-1">
+                            <h3>{name}</h3>
+                            <p>{price_in_cents as f32 / 100.0} LE</p>
+                            <p>{address}</p>
+                        </div>
+                    </div>
+                    <input class="text-red-800 hover:text-red-500 border-2 rounded-lg col-span-1" type="submit" value="- حذف -"/>
                     <a
-                        class="text-lime-800 hover:text-lime-400 border-2 rounded-lg col-span-1"
+                        class="text-center text-lime-800 hover:text-lime-400 border-2 rounded-lg col-span-1"
                         href={move || format!("/dashboard/updateEstate/{}/{}",id,user_id().unwrap_or("".to_string()))}
-                    >"تحديث"</a>
+                    >"^ تحديث ^"</a>
                 </div>
             </ActionForm>
         </For>
         </Suspense>
-        <div class="grid grid-cols-1 text-center">
+        <div class="grid grid-cols-1 text-center w-full">
             <a
                 href={move || format!("/dashboard/addEstate/{}",user_id().unwrap_or("".to_string()))}
                 class="text-violet-800 hover:text-violet-500 border-2 rounded-lg w-5/6 m-5 p-2 text-xl hover:text-2xl"
