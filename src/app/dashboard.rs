@@ -106,7 +106,7 @@ fn CardsSection() -> impl IntoView {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card
                 name="ادارة المستخدمين"
-                href={format!("/dashboard/manageUser/{}",user_id().unwrap_or_default())}
+                href={format!("/dashboard/manageUser")}
                 icon="👥"
                 gradient="from-blue-500 to-cyan-500"
             />

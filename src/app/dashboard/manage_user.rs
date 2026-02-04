@@ -107,7 +107,7 @@ pub fn ManageUser() -> impl IntoView {
 
                                             <div class="flex items-center gap-3">
                                                 <a
-                                                    href={move || format!("/dashboard/updateUser/{}/{}",target_id,user_id())}
+                                                    href={move || format!("/dashboard/updateUser/{}",target_id)}
                                                     class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
                                                 >
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@ pub fn ManageUser() -> impl IntoView {
 
                     <div class="flex justify-center gap-4">
                         <a
-                            href={move || format!("/dashboard/addUser/{}",user_id())}
+                            href={move || format!("/dashboard/addUser")}
                             class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
                         >
                             <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

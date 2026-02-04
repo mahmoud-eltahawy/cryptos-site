@@ -60,11 +60,11 @@ pub fn App() -> impl IntoView {
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
-                    <Route path=path!("/dashboard/updateUser/:targetId/:userId") view=UpdateUser/>
+                    <Route path=path!("/dashboard/updateUser/:targetId") view=UpdateUser/>
                     <Route path=path!("/dashboard/updateEstate/:targetId/:userId") view=UpdateEstate/>
                     <Route path=path!("/dashboard/estateDetails/:targetId/:userId") view=EstateDetails/>
-                    <Route path=path!("/dashboard/addUser/:id") view=AddUser/>
-                    <Route path=path!("/dashboard/manageUser/:id") view=ManageUser/>
+                    <Route path=path!("/dashboard/addUser") view=AddUser/>
+                    <Route path=path!("/dashboard/manageUser") view=ManageUser/>
                     <Route path=path!("/dashboard/manageEstates/:id") view=ManageEstates/>
                     <Route path=path!("/dashboard/addEstate/:id") view=AddEstate/>
                     <Route path=path!("/dashboard/:id") view=Dashboard/>

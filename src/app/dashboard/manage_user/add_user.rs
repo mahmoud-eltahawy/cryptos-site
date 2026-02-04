@@ -88,7 +88,7 @@ pub fn AddUser() -> impl IntoView {
                                     <UserPasswordInput/>
                                     <Warn/>
                                 </div>
-                                <Buttons user_id/>
+                                <Buttons/>
                             </ActionForm>
                         </div>
                     </div>
@@ -186,10 +186,7 @@ pub fn Warn() -> impl IntoView {
 }
 
 #[component]
-pub fn Buttons<U>(user_id: U) -> impl IntoView
-where
-    U: Fn() -> String + Sized + Send + 'static,
-{
+pub fn Buttons() -> impl IntoView {
     view! {
         <div class="flex flex-wrap gap-4 justify-center mt-10">
             <button
@@ -201,7 +198,7 @@ where
             </button>
 
             <a
-                href={move || format!("/dashboard/manageUser/{}", user_id())}
+                href={move || format!("/dashboard/manageUser")}
                 class="px-8 py-4 bg-white text-gray-700 font-bold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-300 hover:border-gray-400 flex items-center gap-2"
             >
                 <CloseIcon/>
