@@ -8,7 +8,9 @@ pub const USER_ID_KEY: &str = "user_id";
 pub const USER_LEVEL_KEY: &str = "user_level";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum UserLevel {
+#[cfg_attr(feature = "ssr", derive(sqlx::Type))]
+#[cfg_attr(feature = "ssr", sqlx(type_name = "text", rename_all = "PascalCase"))]
+pub enum Level {
     Admin,
     User,
 }
@@ -24,19 +26,15 @@ pub async fn get_user_id_from_session(session: Session) -> Option<Uuid> {
 }
 
 #[cfg(feature = "ssr")]
-pub async fn get_user_level_from_session(session: Session) -> Option<UserLevel> {
-    session
-        .get::<UserLevel>(USER_LEVEL_KEY)
-        .await
-        .ok()
-        .flatten()
+pub async fn get_user_level_from_session(session: Session) -> Option<Level> {
+    session.get::<Level>(USER_LEVEL_KEY).await.ok().flatten()
 }
 
 #[cfg(feature = "ssr")]
 pub async fn set_user_session(
     session: Session,
     user_id: Uuid,
-    level: UserLevel,
+    level: Level,
 ) -> Result<(), tower_sessions::session::Error> {
     session.insert(USER_ID_KEY, user_id.to_string()).await?;
     session.insert(USER_LEVEL_KEY, level).await?;
@@ -46,7 +44,7 @@ pub async fn set_user_session(
 #[cfg(feature = "ssr")]
 pub async fn clear_user_session(session: Session) -> Result<(), tower_sessions::session::Error> {
     let _ = session.remove::<String>(USER_ID_KEY).await;
-    let _ = session.remove::<UserLevel>(USER_LEVEL_KEY).await;
+    let _ = session.remove::<Level>(USER_LEVEL_KEY).await;
     session.flush().await?;
     Ok(())
 }
@@ -69,7 +67,7 @@ pub async fn require_admin(session: Session) -> Result<Uuid, String> {
         .ok_or_else(|| "Unable to determine user level".to_string())?;
 
     match level {
-        UserLevel::Admin => Ok(user_id),
-        UserLevel::User => Err("Forbidden: Admin access required".to_string()),
+        Level::Admin => Ok(user_id),
+        Level::User => Err("Forbidden: Admin access required".to_string()),
     }
 }

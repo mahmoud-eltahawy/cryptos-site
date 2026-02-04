@@ -2,7 +2,7 @@ use leptos::prelude::*;
 
 #[server]
 async fn login(username: String, password: String) -> Result<(), ServerFnError> {
-    use crate::auth::{UserLevel, set_user_session};
+    use crate::auth::set_user_session;
     use tower_sessions::Session;
 
     let pool = use_context::<sqlx::PgPool>()
@@ -26,12 +26,7 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
         return Err(ServerFnError::Args(user_error));
     }
 
-    let level = match user.level {
-        crate::app::Level::Admin => UserLevel::Admin,
-        crate::app::Level::User => UserLevel::User,
-    };
-
-    set_user_session(session, user.id, level)
+    set_user_session(session, user.id, user.level)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

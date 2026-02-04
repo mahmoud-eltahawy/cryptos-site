@@ -6,13 +6,7 @@ use uuid::Uuid;
 #[cfg(feature = "ssr")]
 use chrono::{DateTime, Utc};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(feature = "ssr", derive(sqlx::Type))]
-#[cfg_attr(feature = "ssr", sqlx(type_name = "text", rename_all = "PascalCase"))]
-pub enum Level {
-    Admin,
-    User,
-}
+use crate::auth::Level;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ssr", derive(FromRow))]

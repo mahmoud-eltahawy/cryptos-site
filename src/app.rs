@@ -9,7 +9,7 @@ use crate::app::{
     },
     login::Login,
 };
-pub use crate::models::{Estate, Level, SecureUser};
+pub use crate::models::{Estate, SecureUser};
 use features_section::FeaturesSection;
 use hero_section::HeroSection;
 use leptos::prelude::*;

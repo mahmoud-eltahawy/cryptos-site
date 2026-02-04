@@ -5,7 +5,9 @@ use {
 };
 
 #[cfg(feature = "ssr")]
-use super::models::{Level, User};
+use super::models::User;
+#[cfg(feature = "ssr")]
+use crate::auth::Level;
 
 #[cfg(feature = "ssr")]
 pub async fn create_user(

@@ -1,14 +1,15 @@
 use leptos::prelude::*;
-use leptos_router::hooks::use_params_map;
 use leptos_router::components::Redirect;
+use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
-use crate::app::{Level, dashboard::get_user_by_id};
+use crate::app::dashboard::get_user_by_id;
+use crate::auth::Level;
 
 #[server]
 async fn check_auth_update_user() -> Result<Uuid, ServerFnError> {
-    use tower_sessions::Session;
     use crate::auth::require_auth;
+    use tower_sessions::Session;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
