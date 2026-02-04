@@ -1,6 +1,6 @@
 use leptos::prelude::*;
-use leptos_router::hooks::use_params_map;
 use leptos_router::components::Redirect;
+use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::SecureUser;
@@ -9,9 +9,24 @@ pub mod manage_estates;
 pub mod manage_user;
 
 #[server]
+async fn get_dashboard_stats() -> Result<(usize, usize), ServerFnError> {
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    let users_count = crate::db::users::count_users(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let estates_count = crate::db::estates::count_estates(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok((users_count as usize, estates_count as usize))
+}
+
+#[server]
 async fn check_auth() -> Result<Uuid, ServerFnError> {
-    use tower_sessions::Session;
     use crate::auth::require_auth;
+    use tower_sessions::Session;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
@@ -28,8 +43,8 @@ async fn check_auth() -> Result<Uuid, ServerFnError> {
 
 #[server]
 async fn logout() -> Result<(), ServerFnError> {
-    use tower_sessions::Session;
     use crate::auth::clear_user_session;
+    use tower_sessions::Session;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
@@ -77,8 +92,8 @@ pub fn Dashboard() -> impl IntoView {
                                     </h1>
                                     <p class="text-gray-600 text-lg">"إدارة العقارات والمستخدمين"</p>
                                 </div>
-
-                                <div class="flex justify-center mb-8">
+                                <Stats/>
+                                <div class="flex justify-center mb-8 mt-4">
                                     <ActionForm action={logout_action}>
                                         <button
                                             type="submit"
@@ -122,7 +137,61 @@ pub fn Dashboard() -> impl IntoView {
 }
 
 #[component]
-fn Card(href: String, name: &'static str, icon: &'static str, gradient: &'static str) -> impl IntoView {
+fn Stats() -> impl IntoView {
+    let stats_res = Resource::new(|| (), |_| get_dashboard_stats());
+
+    view! {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-3xl mx-auto">
+            <Suspense fallback=|| view! {
+                <div class="col-span-1 md:col-span-2 flex justify-center py-4">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+            }>
+                {move || stats_res.get().map(|res| {
+                    match res {
+                        Ok((user_count, estate_count)) => view! {
+                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">"إجمالي المستخدمين"</p>
+                                    <p class="text-3xl font-extrabold text-blue-600">{user_count}</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-blue-500 to-cyan-500 p-3 rounded-xl text-white">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">"إجمالي العقارات"</p>
+                                    <p class="text-3xl font-extrabold text-purple-600">{estate_count}</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-xl text-white">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a2 2 0 012-2h3.28a1 1 0 01.948.684l.894 2.683A1 1 0 0013.053 7H18a2 2 0 012 2v9a1 1 0 01-1 1h-5H7H5a1 1 0 01-1-1V5z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        }.into_any(),
+                        Err(_) => view! {
+                            <div class="col-span-1 md:col-span-2 text-center text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                                "حدث خطأ أثناء تحميل الإحصائيات"
+                            </div>
+                        }.into_any(),
+                    }
+                })}
+            </Suspense>
+        </div>
+    }
+}
+
+#[component]
+fn Card(
+    href: String,
+    name: &'static str,
+    icon: &'static str,
+    gradient: &'static str,
+) -> impl IntoView {
     let gradient_class = format!("bg-gradient-to-br {}", gradient);
     view! {
         <a
@@ -163,7 +232,8 @@ async fn get_users_names() -> Result<Vec<(Uuid, String)>, ServerFnError> {
     let users = crate::db::users::get_all_users(&pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    let xs = users.iter()
+    let xs = users
+        .iter()
         .map(|x| (x.id, x.name.clone()))
         .collect::<Vec<_>>();
     Ok(xs)

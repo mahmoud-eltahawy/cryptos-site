@@ -100,6 +100,7 @@ pub fn AddUser() -> impl IntoView {
                                         id="name"
                                         placeholder="أدخل اسم المستخدم"
                                         required
+                                        minlength="3"
                                     />
                                 </div>
 
@@ -140,6 +141,7 @@ pub fn AddUser() -> impl IntoView {
                                         id="password"
                                         placeholder="أدخل كلمة سر قوية"
                                         required
+                                        minlength="8"
                                     />
                                 </div>
 

@@ -151,3 +151,16 @@ pub async fn delete_user(pool: &PgPool, id: Uuid) -> Result<(), Error> {
 
     Ok(())
 }
+
+#[cfg(feature = "ssr")]
+pub async fn count_users(pool: &PgPool) -> Result<i64, Error> {
+    let count = sqlx::query_scalar::<_, i64>(
+        r#"
+        SELECT COUNT(*) FROM users
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(count)
+}

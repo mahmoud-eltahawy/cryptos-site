@@ -106,6 +106,7 @@ pub fn AddEstate() -> impl IntoView {
                                         id="name"
                                         placeholder="مثال: فيلا فاخرة في التجمع الخامس"
                                         required
+                                        minlength="3"
                                     />
                                 </div>
 
@@ -127,6 +128,7 @@ pub fn AddEstate() -> impl IntoView {
                                         id="address"
                                         placeholder="مثال: التجمع الخامس، القاهرة الجديدة"
                                         required
+                                        minlength="5"
                                     />
                                 </div>
 

@@ -168,3 +168,16 @@ pub async fn delete_estate(pool: &PgPool, id: Uuid) -> Result<(), Error> {
 
     Ok(())
 }
+
+#[cfg(feature = "ssr")]
+pub async fn count_estates(pool: &PgPool) -> Result<i64, Error> {
+    let count = sqlx::query_scalar::<_, i64>(
+        r#"
+        SELECT COUNT(*) FROM estates
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(count)
+}

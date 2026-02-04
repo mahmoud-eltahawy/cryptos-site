@@ -40,7 +40,7 @@ pub fn FeaturesSection() -> impl IntoView {
 fn Why() -> impl IntoView {
     view! {
          <div class="text-center mb-16">
-             <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+             <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 p-4">
                  "لماذا تختار كريبتوس؟"
              </h2>
              <p class="text-gray-600 text-xl">"نقدم لك أفضل الحلول العقارية"</p>
