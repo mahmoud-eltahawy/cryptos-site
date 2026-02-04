@@ -64,75 +64,99 @@ async fn logout() -> Result<(), ServerFnError> {
 
 #[component]
 pub fn Dashboard() -> impl IntoView {
-    let params = use_params_map();
-    let user_id = move || params.with(|p| p.get("id"));
-
-    // Check authentication
     let auth_check = Resource::new(|| (), |_| check_auth());
-    let logout_action = ServerAction::<Logout>::new();
+    let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
 
     view! {
-        <Suspense fallback=|| view! {
-            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-                <div class="text-center">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+        <Suspense fallback=CheckingSpinner>
+        <Show
+            fallback=move || view!{ <Redirect path="/login"/>}
+            when={autherized}
+        >
+            <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <Titles/>
+                    <Stats/>
+                    <LogoutButton/>
+                    <CardsSection/>
                 </div>
             </div>
-        }>
-        {move || {
-            auth_check.get().map(|auth_result| {
-                match auth_result {
-                    Ok(_) => view! {
-                        <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-                            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                                <div class="text-center mb-8">
-                                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                                        "لوحة التحكم"
-                                    </h1>
-                                    <p class="text-gray-600 text-lg">"إدارة العقارات والمستخدمين"</p>
-                                </div>
-                                <Stats/>
-                                <div class="flex justify-center mb-8 mt-4">
-                                    <ActionForm action={logout_action}>
-                                        <button
-                                            type="submit"
-                                            class="group px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
-                                        >
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                            </svg>
-                                            "تسجيل الخروج"
-                                        </button>
-                                    </ActionForm>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                                    <Card
-                                        name="ادارة المستخدمين"
-                                        href={format!("/dashboard/manageUser/{}",user_id().unwrap_or("".to_string()))}
-                                        icon="👥"
-                                        gradient="from-blue-500 to-cyan-500"
-                                    />
-                                    <Card
-                                        name="ادارة العقارات"
-                                        href={format!("/dashboard/manageEstates/{}",user_id().unwrap_or("".to_string()))}
-                                        icon="🏢"
-                                        gradient="from-purple-500 to-pink-500"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    }.into_any(),
-                    Err(_) => {
-                        view! {
-                            <Redirect path="/login"/>
-                        }.into_any()
-                    }
-                }
-            })
-        }}
+        </Show>
         </Suspense>
+    }
+}
+
+#[component]
+fn CardsSection() -> impl IntoView {
+    let params = use_params_map();
+    let user_id = move || params.with(|p| p.get("id"));
+    view! {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card
+                name="ادارة المستخدمين"
+                href={format!("/dashboard/manageUser/{}",user_id().unwrap_or_default())}
+                icon="👥"
+                gradient="from-blue-500 to-cyan-500"
+            />
+            <Card
+                name="ادارة العقارات"
+                href={format!("/dashboard/manageEstates/{}",user_id().unwrap_or_default())}
+                icon="🏢"
+                gradient="from-purple-500 to-pink-500"
+            />
+        </div>
+    }
+}
+
+#[component]
+fn LogoutButton() -> impl IntoView {
+    let logout_action = ServerAction::<Logout>::new();
+    view! {
+        <div class="flex justify-center mb-8 mt-4">
+            <ActionForm action={logout_action}>
+                <button
+                    type="submit"
+                    class="group px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                    <ExitDoorIcon/>
+                    "تسجيل الخروج"
+                </button>
+            </ActionForm>
+        </div>
+
+    }
+}
+
+#[component]
+fn ExitDoorIcon() -> impl IntoView {
+    view! {
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+    }
+}
+
+#[component]
+pub fn CheckingSpinner() -> impl IntoView {
+    view! {
+        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+            <div class="text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+pub fn Titles() -> impl IntoView {
+    view! {
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                "لوحة التحكم"
+            </h1>
+            <p class="text-gray-600 text-lg">"إدارة العقارات والمستخدمين"</p>
+        </div>
     }
 }
 
@@ -150,7 +174,7 @@ fn Stats() -> impl IntoView {
                 {move || stats_res.get().map(|res| {
                     match res {
                         Ok((user_count, estate_count)) => view! {
-                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between">
+                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between hover:scale-105">
                                 <div>
                                     <p class="text-sm text-gray-500 mb-1">"إجمالي المستخدمين"</p>
                                     <p class="text-3xl font-extrabold text-blue-600">{user_count}</p>
@@ -161,7 +185,7 @@ fn Stats() -> impl IntoView {
                                     </svg>
                                 </div>
                             </div>
-                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between">
+                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between hover:scale-105">
                                 <div>
                                     <p class="text-sm text-gray-500 mb-1">"إجمالي العقارات"</p>
                                     <p class="text-3xl font-extrabold text-purple-600">{estate_count}</p>
