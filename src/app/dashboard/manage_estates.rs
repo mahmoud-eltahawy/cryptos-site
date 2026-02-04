@@ -48,57 +48,106 @@ pub mod estate_details {
         let estate = move || estate_res.get().and_then(|x| x.ok());
 
         view! {
-            <Suspense fallback=|| view! { <p>"جاري التحميل..."</p> }>
-                {move || estate().map(|Estate { id, name, address, image_url, price_in_cents, space_in_meters }| {
-                    view! {
-                        <div class="max-w-4xl mx-auto my-10 p-5">
-                            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                                <img
-                                    class="w-full h-96 object-cover"
-                                    src={image_url.clone()}
-                                    alt={name.clone()}
-                                />
-                                <div class="p-8">
-                                    <h1 class="text-3xl font-bold text-gray-800 mb-4">{name.clone()}</h1>
+            <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
+                <Suspense fallback=|| view! {
+                    <div class="text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
+                    </div>
+                }>
+                    {move || estate().map(|Estate { id, name, address, image_url, price_in_cents, space_in_meters }| {
+                        view! {
+                            <div class="max-w-5xl mx-auto">
+                                <div class="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                                    <div class="relative h-96 overflow-hidden">
+                                        <img
+                                            class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-700"
+                                            src={image_url.clone()}
+                                            alt={name.clone()}
+                                        />
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                        <div class="absolute bottom-0 left-0 right-0 p-8">
+                                            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">{name.clone()}</h1>
+                                            <div class="flex items-center text-white/90 gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                </svg>
+                                                <span class="text-lg">{address.clone()}</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-                                        <div class="bg-blue-50 p-4 rounded-lg">
-                                            <h3 class="text-lg font-semibold text-blue-800 mb-2">"المساحة"</h3>
-                                            <p class="text-2xl text-gray-700">{space_in_meters}" متر مربع"</p>
+                                    <div class="p-8">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-blue-100">
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div class="bg-gradient-to-br from-blue-500 to-cyan-500 p-3 rounded-xl shadow-md">
+                                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <h3 class="text-xl font-bold text-gray-800">"المساحة"</h3>
+                                                </div>
+                                                <p class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                                                    {space_in_meters}" متر²"
+                                                </p>
+                                            </div>
+
+                                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-green-100">
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <div class="bg-gradient-to-br from-green-500 to-emerald-500 p-3 rounded-xl shadow-md">
+                                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <h3 class="text-xl font-bold text-gray-800">"السعر"</h3>
+                                                </div>
+                                                <p class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                                    {format!("{:.2}", price_in_cents as f32 / 100.0)}" جنيه"
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        <div class="bg-green-50 p-4 rounded-lg">
-                                            <h3 class="text-lg font-semibold text-green-800 mb-2">"السعر"</h3>
-                                            <p class="text-2xl text-gray-700">{price_in_cents as f32 / 100.0}" جنيه"</p>
+                                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-md border border-purple-100 mb-8">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div class="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-xl shadow-md">
+                                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                    </svg>
+                                                </div>
+                                                <h3 class="text-xl font-bold text-gray-800">"معرف العقار"</h3>
+                                            </div>
+                                            <p class="text-sm text-gray-600 font-mono bg-white/50 px-4 py-2 rounded-lg">{id.to_string()}</p>
                                         </div>
-                                    </div>
 
-                                    <div class="bg-gray-50 p-4 rounded-lg my-6">
-                                        <h3 class="text-lg font-semibold text-gray-800 mb-2">"العنوان"</h3>
-                                        <p class="text-xl text-gray-700">{address.clone()}</p>
-                                    </div>
-
-                                    <div class="bg-purple-50 p-4 rounded-lg my-6">
-                                        <h3 class="text-lg font-semibold text-purple-800 mb-2">"معرف العقار"</h3>
-                                        <p class="text-sm text-gray-600 font-mono">{id.to_string()}</p>
-                                    </div>
-
-                                    <div class="flex gap-4 justify-center mt-8">
-                                        <a
-                                            href={format!("/dashboard/updateEstate/{}/{}", id, user_id())}
-                                            class="px-6 py-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                        >"تعديل العقار"</a>
-                                        <a
-                                            href={format!("/dashboard/manageEstates/{}", user_id())}
-                                            class="px-6 py-3 text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                                        >"العودة"</a>
+                                        <div class="flex flex-wrap gap-4 justify-center">
+                                            <a
+                                                href={format!("/dashboard/updateEstate/{}/{}", id, user_id())}
+                                                class="group px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
+                                            >
+                                                <svg class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                                "تعديل العقار"
+                                            </a>
+                                            <a
+                                                href={format!("/dashboard/manageEstates/{}", user_id())}
+                                                class="px-8 py-3 bg-white text-gray-700 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300 flex items-center gap-2"
+                                            >
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                                </svg>
+                                                "العودة"
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    }
-                })}
-            </Suspense>
+                        }
+                    })}
+                </Suspense>
+            </div>
         }
     }
 }
@@ -130,50 +179,121 @@ pub fn ManageEstates() -> impl IntoView {
     let user_id = move || params.with(|p| p.get("id"));
 
     view! {
-        <Suspense>
-        <For
-            each={estates}
-            key=|x| x.id
-            let(Estate { id, name, address, image_url, price_in_cents,space_in_meters })
-        >
-            <ActionForm action={remove_estate}>
-                <div class="grid grid-cols-8 gap-5 text-center m-5">
-                    <input class="hidden" name="id" value={user_id}/>
-                    <input class="hidden" name="target_id" value={id.to_string()}/>
-                    <div class="h-64 text-blue-600 font-bold grid grid-cols-2 col-span-7 text-xl border-2 rounded-lg">
-                        <img
-                             class="w-96 h-64 object-fill"
-                            src={image_url} alt="view image"
-                        />
-                        <div class="text-center text-black">
-                            <h2>{name}</h2>
-                            <ul class="m-5">
-                                <li>{space_in_meters} متر</li>
-                                <li>{price_in_cents as f32 / 100.0} جنية</li>
-                                <li>{address}</li>
-                            </ul>
-                            <a
-                                class="border-1 rounded-lg p-2 m-6 hover:text-lime-600"
-                                href={move || format!("/dashboard/estateDetails/{}/{}",id,user_id().unwrap_or("".to_string()))}
-                            >"التفاصيل"</a>
-                        </div>
-                    </div>
-                    <div class="text-center grid grid-cols-1 gap-4">
-                        <a
-                            class="text-center text-lime-800 hover:text-lime-400 border-2 rounded-lg align-middle"
-                            href={move || format!("/dashboard/updateEstate/{}/{}",id,user_id().unwrap_or("".to_string()))}
-                        >"^ تحديث ^"</a>
-                        <input class="text-red-800 hover:text-red-500 border-2 rounded-lg" type="submit" value="- حذف -"/>
-                    </div>
+        <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                        "إدارة العقارات"
+                    </h1>
+                    <p class="text-gray-600 text-lg">"عرض وتعديل العقارات المتاحة"</p>
                 </div>
-            </ActionForm>
-        </For>
-        </Suspense>
-        <div class="grid grid-cols-1 text-center w-full">
-            <a
-                href={move || format!("/dashboard/addEstate/{}",user_id().unwrap_or("".to_string()))}
-                class="text-violet-800 hover:text-violet-500 border-2 rounded-lg w-5/6 m-5 p-2 text-xl hover:text-2xl"
-            >"+ اضافة +"</a>
+
+                <Suspense fallback=|| view! {
+                    <div class="text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
+                    </div>
+                }>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <For
+                            each={estates}
+                            key=|x| x.id
+                            let(Estate { id, name, address, image_url, price_in_cents, space_in_meters })
+                        >
+                            <div class="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:scale-[1.02]">
+                                <div class="relative h-64 overflow-hidden">
+                                    <img
+                                        class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                        src={image_url}
+                                        alt={name.clone()}
+                                    />
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                </div>
+
+                                <div class="p-6">
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                                        {name}
+                                    </h2>
+
+                                    <div class="space-y-3 mb-6">
+                                        <div class="flex items-center text-gray-600 gap-2">
+                                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                            <span>{address}</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center text-gray-700 gap-2">
+                                                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path>
+                                                </svg>
+                                                <span class="font-semibold">{space_in_meters}" متر²"</span>
+                                            </div>
+
+                                            <div class="flex items-center text-green-600 gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span class="font-bold">{format!("{:.2}", price_in_cents as f32 / 100.0)}" ج"</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-3">
+                                        <a
+                                            href={move || format!("/dashboard/estateDetails/{}/{}",id,user_id().unwrap_or("".to_string()))}
+                                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+                                        >
+                                            "التفاصيل"
+                                        </a>
+
+                                        <a
+                                            href={move || format!("/dashboard/updateEstate/{}/{}",id,user_id().unwrap_or("".to_string()))}
+                                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+                                        >
+                                            "تحديث"
+                                        </a>
+
+                                        <div class="flex-1">
+                                            <ActionForm action={remove_estate}>
+                                                <input class="hidden" name="id" value={user_id}/>
+                                                <input class="hidden" name="target_id" value={id.to_string()}/>
+                                                <button
+                                                    type="submit"
+                                                    class="w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
+                                                >
+                                                    "حذف"
+                                                </button>
+                                            </ActionForm>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </For>
+                    </div>
+                </Suspense>
+
+                <div class="flex justify-center gap-4 mt-12">
+                    <a
+                        href={move || format!("/dashboard/addEstate/{}",user_id().unwrap_or("".to_string()))}
+                        class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
+                    >
+                        <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        "إضافة عقار جديد"
+                    </a>
+
+                    <a
+                        href={move || format!("/dashboard/{}", user_id().unwrap_or("".to_string()))}
+                        class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
+                    >
+                        "← العودة إلى لوحة التحكم"
+                    </a>
+                </div>
+            </div>
         </div>
     }
 }
