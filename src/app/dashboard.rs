@@ -157,11 +157,13 @@ fn Card(href: String, name: &'static str, icon: &'static str, gradient: &'static
 
 #[server]
 async fn get_users_names() -> Result<Vec<(Uuid, String)>, ServerFnError> {
-    let xs = crate::app::DB
-        .users
-        .lock()
-        .unwrap()
-        .iter()
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    let users = crate::db::users::get_all_users(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let xs = users.iter()
         .map(|x| (x.id, x.name.clone()))
         .collect::<Vec<_>>();
     Ok(xs)
@@ -169,12 +171,12 @@ async fn get_users_names() -> Result<Vec<(Uuid, String)>, ServerFnError> {
 
 #[server]
 async fn get_user_by_id(id: uuid::Uuid) -> Result<SecureUser, ServerFnError> {
-    let user = crate::app::DB
-        .users
-        .lock()
-        .unwrap()
-        .iter()
-        .find(|x| x.id == id)
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    let user = crate::db::users::get_user_by_id(&pool, id)
+        .await
+        .ok()
         .map(SecureUser::from);
     let Some(user) = user else {
         return Err(ServerFnError::ServerError(

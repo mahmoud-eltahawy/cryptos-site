@@ -33,13 +33,12 @@ pub mod estate_details {
 
     #[server]
     async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
-        let estate = crate::app::DB
-            .estates
-            .lock()
-            .unwrap()
-            .iter()
-            .find(|x| x.id == id)
-            .cloned();
+        let pool = use_context::<sqlx::PgPool>()
+            .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+        let estate = crate::db::estates::get_estate_by_id(&pool, id)
+            .await
+            .ok();
         let Some(estate) = estate else {
             return Err(ServerFnError::ServerError(
                 "could not find estate with id".to_string(),
@@ -87,7 +86,8 @@ pub mod estate_details {
                         <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
                     </div>
                 }>
-                    {move || estate().map(|Estate { id, name, address, image_url, price_in_cents, space_in_meters }| {
+                    {move || estate().map(|estate| {
+                        let Estate { id, name, address, image_url, price_in_cents, space_in_meters, .. } = estate;
                         view! {
                             <div class="max-w-5xl mx-auto">
                                 <div class="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
@@ -213,18 +213,24 @@ async fn check_auth_manage_estates() -> Result<uuid::Uuid, ServerFnError> {
 
 #[server]
 async fn remove_estate(id: uuid::Uuid, target_id: uuid::Uuid) -> Result<(), ServerFnError> {
-    crate::app::DB
-        .estates
-        .lock()
-        .unwrap()
-        .retain(|x| x.id != target_id);
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::delete_estate(&pool, target_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect(&format!("/dashboard/manageEstates/{}", id));
     Ok(())
 }
 
 #[server]
 async fn get_estates() -> Result<Vec<Estate>, ServerFnError> {
-    let res = crate::app::DB.estates.lock().unwrap().to_vec();
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    let res = crate::db::estates::get_all_estates(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(res)
 }
 
@@ -270,7 +276,7 @@ pub fn ManageEstates() -> impl IntoView {
                         <For
                             each={estates}
                             key=|x| x.id
-                            let(Estate { id, name, address, image_url, price_in_cents, space_in_meters })
+                            let(Estate { id, name, address, image_url, price_in_cents, space_in_meters, .. })
                         >
                             <div class="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:scale-[1.02]">
                                 <div class="relative h-64 overflow-hidden">

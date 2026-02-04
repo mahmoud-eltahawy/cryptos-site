@@ -2,9 +2,11 @@ use leptos::prelude::*;
 
 #[server]
 async fn login(username: String, password: String) -> Result<(), ServerFnError> {
-    use crate::app::DB;
-    use crate::auth::{set_user_session, UserLevel};
+    use crate::auth::{UserLevel, set_user_session};
     use tower_sessions::Session;
+
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
@@ -14,21 +16,9 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
         .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
         .clone();
 
-    let user = DB
-        .users
-        .lock()
-        .unwrap()
-        .iter()
-        .find(|x| x.name == username)
-        .cloned();
+    let user = crate::db::users::get_user_by_name(&pool, &username).await?;
 
-    let Some(user) = user else {
-        return Err(ServerFnError::Args(
-            "اسم المستخدم أو كلمة السر غير صحيحة".to_string(),
-        ));
-    };
-
-    if password_auth::verify_password(password, &user.password).is_err() {
+    if password_auth::verify_password(&password, &user.password).is_err() {
         return Err(ServerFnError::Args(
             "اسم المستخدم أو كلمة السر غير صحيحة".to_string(),
         ));

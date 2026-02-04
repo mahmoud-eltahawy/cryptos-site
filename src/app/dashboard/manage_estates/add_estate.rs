@@ -26,19 +26,22 @@ async fn add_estate(
     name: String,
     address: String,
     image_url: String,
-    price_in_cents: usize,
-    space_in_meters: usize,
+    price_in_cents: i64,
+    space_in_meters: i32,
 ) -> Result<(), ServerFnError> {
-    use crate::app::DB;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
 
-    DB.estates.lock().unwrap().push(crate::app::Estate {
-        id: Uuid::new_v4(),
+    crate::db::estates::create_estate(
+        &pool,
         name,
         address,
         image_url,
         price_in_cents,
-        space_in_meters,
-    });
+        space_in_meters
+    )
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect(&format!("/dashboard/manageEstates/{}", id));
     Ok(())
 }

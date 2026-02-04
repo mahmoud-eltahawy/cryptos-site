@@ -28,14 +28,13 @@ async fn add_user(
     level: Level,
     password: String,
 ) -> Result<(), ServerFnError> {
-    use crate::app::DB;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
 
-    DB.users.lock().unwrap().push(crate::app::User {
-        id: Uuid::new_v4(),
-        name,
-        password: password_auth::generate_hash(password),
-        level,
-    });
+    let hashed = password_auth::generate_hash(password);
+    crate::db::users::create_user(&pool, name, hashed, level)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect(&format!("/dashboard/manageUser/{}", id));
     Ok(())
 }

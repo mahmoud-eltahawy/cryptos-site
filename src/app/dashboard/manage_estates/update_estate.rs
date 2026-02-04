@@ -24,13 +24,12 @@ async fn check_auth_update_estate() -> Result<Uuid, ServerFnError> {
 
 #[server]
 async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
-    let estate = crate::app::DB
-        .estates
-        .lock()
-        .unwrap()
-        .iter()
-        .find(|x| x.id == id)
-        .cloned();
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    let estate = crate::db::estates::get_estate_by_id(&pool, id)
+        .await
+        .ok();
     let Some(estate) = estate else {
         return Err(ServerFnError::ServerError(
             "could not find estate with id".to_string(),
@@ -45,14 +44,12 @@ async fn update_name(
     target_id: uuid::Uuid,
     name: String,
 ) -> Result<(), ServerFnError> {
-    let mut estates = crate::app::DB.estates.lock().unwrap();
-    let pos = estates.iter().position(|x| x.id == target_id);
-    let Some(pos) = pos else {
-        return Err(ServerFnError::ServerError(
-            "could not find estate with id".to_string(),
-        ));
-    };
-    estates[pos].name = name;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::update_estate_name(&pool, target_id, name)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
     Ok(())
@@ -64,14 +61,12 @@ async fn update_address(
     target_id: uuid::Uuid,
     address: String,
 ) -> Result<(), ServerFnError> {
-    let mut estates = crate::app::DB.estates.lock().unwrap();
-    let pos = estates.iter().position(|x| x.id == target_id);
-    let Some(pos) = pos else {
-        return Err(ServerFnError::ServerError(
-            "could not find estate with id".to_string(),
-        ));
-    };
-    estates[pos].address = address;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::update_estate_address(&pool, target_id, address)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
     Ok(())
@@ -83,14 +78,12 @@ async fn update_image_url(
     target_id: uuid::Uuid,
     image_url: String,
 ) -> Result<(), ServerFnError> {
-    let mut estates = crate::app::DB.estates.lock().unwrap();
-    let pos = estates.iter().position(|x| x.id == target_id);
-    let Some(pos) = pos else {
-        return Err(ServerFnError::ServerError(
-            "could not find estate with id".to_string(),
-        ));
-    };
-    estates[pos].image_url = image_url;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::update_estate_image_url(&pool, target_id, image_url)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
     Ok(())
@@ -100,16 +93,14 @@ async fn update_image_url(
 async fn update_price(
     user_id: uuid::Uuid,
     target_id: uuid::Uuid,
-    price_in_cents: usize,
+    price_in_cents: i64,
 ) -> Result<(), ServerFnError> {
-    let mut estates = crate::app::DB.estates.lock().unwrap();
-    let pos = estates.iter().position(|x| x.id == target_id);
-    let Some(pos) = pos else {
-        return Err(ServerFnError::ServerError(
-            "could not find estate with id".to_string(),
-        ));
-    };
-    estates[pos].price_in_cents = price_in_cents;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::update_estate_price(&pool, target_id, price_in_cents)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
     Ok(())
@@ -119,16 +110,14 @@ async fn update_price(
 async fn update_space(
     user_id: uuid::Uuid,
     target_id: uuid::Uuid,
-    space_in_meters: usize,
+    space_in_meters: i32,
 ) -> Result<(), ServerFnError> {
-    let mut estates = crate::app::DB.estates.lock().unwrap();
-    let pos = estates.iter().position(|x| x.id == target_id);
-    let Some(pos) = pos else {
-        return Err(ServerFnError::ServerError(
-            "could not find estate with id".to_string(),
-        ));
-    };
-    estates[pos].space_in_meters = space_in_meters;
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::update_estate_space(&pool, target_id, space_in_meters)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
     Ok(())

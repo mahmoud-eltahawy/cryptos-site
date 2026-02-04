@@ -28,11 +28,12 @@ async fn check_auth_manage_user() -> Result<Uuid, ServerFnError> {
 
 #[server]
 async fn remove_user(id: Uuid, target_id: Uuid) -> Result<(), ServerFnError> {
-    crate::app::DB
-        .users
-        .lock()
-        .unwrap()
-        .retain(|x| x.id != target_id);
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::users::delete_user(&pool, target_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect(&format!("/dashboard/manageUser/{}", id));
     Ok(())
 }
