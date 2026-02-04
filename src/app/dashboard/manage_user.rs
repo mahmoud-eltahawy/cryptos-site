@@ -1,6 +1,6 @@
 use leptos::prelude::*;
-use leptos_router::hooks::use_params_map;
 use leptos_router::components::Redirect;
+use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::dashboard::get_users_names;
@@ -10,8 +10,8 @@ pub mod update_user;
 
 #[server]
 async fn check_auth_manage_user() -> Result<Uuid, ServerFnError> {
-    use tower_sessions::Session;
     use crate::auth::require_auth;
+    use tower_sessions::Session;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
@@ -64,7 +64,7 @@ pub fn ManageUser() -> impl IntoView {
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-5xl mx-auto">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 p-4">
                         "إدارة المستخدمين"
                     </h1>
                     <p class="text-gray-600 text-lg">"عرض وتعديل المستخدمين"</p>
