@@ -67,8 +67,20 @@ pub fn Dashboard() -> impl IntoView {
     let auth_check = Resource::new(|| (), |_| check_auth());
     let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
 
+    #[component]
+    fn Spinner() -> impl IntoView {
+        view! {
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+                </div>
+            </div>
+        }
+    }
+
     view! {
-        <Suspense fallback=CheckingSpinner>
+        <Suspense fallback=Spinner>
         <Show
             fallback=move || view!{ <Redirect path="/login"/>}
             when={autherized}
@@ -137,19 +149,7 @@ fn ExitDoorIcon() -> impl IntoView {
 }
 
 #[component]
-pub fn CheckingSpinner() -> impl IntoView {
-    view! {
-        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-            <div class="text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
-            </div>
-        </div>
-    }
-}
-
-#[component]
-pub fn Titles() -> impl IntoView {
+fn Titles() -> impl IntoView {
     view! {
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
@@ -163,49 +163,75 @@ pub fn Titles() -> impl IntoView {
 #[component]
 fn Stats() -> impl IntoView {
     let stats_res = Resource::new(|| (), |_| get_dashboard_stats());
+    let stats = move || stats_res.get().transpose().ok().flatten();
+
+    #[component]
+    fn Spinner() -> impl IntoView {
+        view! {
+            <div class="col-span-1 md:col-span-2 flex justify-center py-4">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        }
+    }
 
     view! {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-3xl mx-auto">
-            <Suspense fallback=|| view! {
-                <div class="col-span-1 md:col-span-2 flex justify-center py-4">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-            }>
-                {move || stats_res.get().map(|res| {
-                    match res {
-                        Ok((user_count, estate_count)) => view! {
-                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between hover:scale-105">
-                                <div>
-                                    <p class="text-sm text-gray-500 mb-1">"إجمالي المستخدمين"</p>
-                                    <p class="text-3xl font-extrabold text-blue-600">{user_count}</p>
-                                </div>
-                                <div class="bg-gradient-to-br from-blue-500 to-cyan-500 p-3 rounded-xl text-white">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between hover:scale-105">
-                                <div>
-                                    <p class="text-sm text-gray-500 mb-1">"إجمالي العقارات"</p>
-                                    <p class="text-3xl font-extrabold text-purple-600">{estate_count}</p>
-                                </div>
-                                <div class="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-xl text-white">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a2 2 0 012-2h3.28a1 1 0 01.948.684l.894 2.683A1 1 0 0013.053 7H18a2 2 0 012 2v9a1 1 0 01-1 1h-5H7H5a1 1 0 01-1-1V5z"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        }.into_any(),
-                        Err(_) => view! {
-                            <div class="col-span-1 md:col-span-2 text-center text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                                "حدث خطأ أثناء تحميل الإحصائيات"
-                            </div>
-                        }.into_any(),
+            <Suspense fallback=Spinner>
+                <ShowLet
+                    some=stats
+                    let((user_count,estate_count))
+                    fallback=move ||view! {
+                        <div class="col-span-1 md:col-span-2 text-center text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                            "حدث خطأ أثناء تحميل الإحصائيات"
+                        </div>
                     }
-                })}
+                >
+                    <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between hover:scale-105">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">"إجمالي المستخدمين"</p>
+                            <p class="text-3xl font-extrabold text-blue-600">{user_count}</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-cyan-500 p-3 rounded-xl text-white">
+                            <UserIcon/>
+                        </div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 flex items-center justify-between hover:scale-105">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">"إجمالي العقارات"</p>
+                            <p class="text-3xl font-extrabold text-purple-600">{estate_count}</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-xl text-white">
+                            <EstateIcon/>
+                        </div>
+                    </div>
+                </ShowLet>
             </Suspense>
         </div>
+    }
+}
+#[component]
+fn UserIcon() -> impl IntoView {
+    view! {
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+    }
+}
+
+#[component]
+fn EstateIcon() -> impl IntoView {
+    view! {
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 5a2 2 0 012-2h3.28a1 1 0 01.948.684l.894 2.683A1 1 0 0013.053 7H18a2 2 0 012 2v9a1 1 0 01-1 1h-5H7H5a1 1 0 01-1-1V5z"></path>
+        </svg>
     }
 }
 
