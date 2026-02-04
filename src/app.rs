@@ -26,12 +26,13 @@ mod dashboard;
 mod login;
 mod navbar;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 enum Level {
     Admin,
     User,
 }
 
+#[derive(Clone)]
 struct User {
     id: Uuid,
     name: String,

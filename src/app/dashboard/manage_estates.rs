@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
+use leptos_router::components::Redirect;
 
 use crate::app::Estate;
 
@@ -8,9 +9,27 @@ pub mod update_estate;
 pub mod estate_details {
     use leptos::prelude::*;
     use leptos_router::hooks::use_params_map;
+    use leptos_router::components::Redirect;
     use uuid::Uuid;
 
     use crate::app::Estate;
+
+    #[server]
+    async fn check_auth_estate_details() -> Result<Uuid, ServerFnError> {
+        use tower_sessions::Session;
+    use crate::auth::require_auth;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+        require_auth(session)
+            .await
+            .map_err(|e| ServerFnError::ServerError(e))
+    }
 
     #[server]
     async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
@@ -31,6 +50,7 @@ pub mod estate_details {
 
     #[component]
     pub fn EstateDetails() -> impl IntoView {
+        let auth_check = Resource::new(|| (), |_| check_auth_estate_details());
         let params = use_params_map();
         let target_id = move || params.with(|p| p.get("targetId"));
         let user_id = move || params.with(|p| p.get("userId")).unwrap_or(String::new());
@@ -48,6 +68,18 @@ pub mod estate_details {
         let estate = move || estate_res.get().and_then(|x| x.ok());
 
         view! {
+            <Suspense fallback=|| view! {
+                <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+                    </div>
+                </div>
+            }>
+            {move || {
+                auth_check.get().map(|auth_result| {
+                    match auth_result {
+                        Ok(_) => view! {
             <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
                 <Suspense fallback=|| view! {
                     <div class="text-center py-12">
@@ -148,8 +180,35 @@ pub mod estate_details {
                     })}
                 </Suspense>
             </div>
+                        }.into_any(),
+                        Err(_) => {
+                            view! {
+                                <Redirect path="/login"/>
+                            }.into_any()
+                        }
+                    }
+                })
+            }}
+            </Suspense>
         }
     }
+}
+
+#[server]
+async fn check_auth_manage_estates() -> Result<uuid::Uuid, ServerFnError> {
+    use tower_sessions::Session;
+    use crate::auth::require_auth;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+    require_auth(session)
+        .await
+        .map_err(|e| ServerFnError::ServerError(e))
 }
 
 #[server]
@@ -171,6 +230,7 @@ async fn get_estates() -> Result<Vec<Estate>, ServerFnError> {
 
 #[component]
 pub fn ManageEstates() -> impl IntoView {
+    let auth_check = Resource::new(|| (), |_| check_auth_manage_estates());
     let estates_res = Resource::new(|| (), move |_| get_estates());
     let estates = move || estates_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_estate = ServerAction::<RemoveEstate>::new();
@@ -179,6 +239,18 @@ pub fn ManageEstates() -> impl IntoView {
     let user_id = move || params.with(|p| p.get("id"));
 
     view! {
+        <Suspense fallback=|| view! {
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+                </div>
+            </div>
+        }>
+        {move || {
+            auth_check.get().map(|auth_result| {
+                match auth_result {
+                    Ok(_) => view! {
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-12">
@@ -295,5 +367,15 @@ pub fn ManageEstates() -> impl IntoView {
                 </div>
             </div>
         </div>
+                    }.into_any(),
+                    Err(_) => {
+                        view! {
+                            <Redirect path="/login"/>
+                        }.into_any()
+                    }
+                }
+            })
+        }}
+        </Suspense>
     }
 }

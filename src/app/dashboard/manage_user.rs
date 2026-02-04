@@ -1,11 +1,30 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
+use leptos_router::components::Redirect;
 use uuid::Uuid;
 
 use crate::app::dashboard::get_users_names;
 
 pub mod add_user;
 pub mod update_user;
+
+#[server]
+async fn check_auth_manage_user() -> Result<Uuid, ServerFnError> {
+    use tower_sessions::Session;
+    use crate::auth::require_auth;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+
+    require_auth(session)
+        .await
+        .map_err(|e| ServerFnError::ServerError(e))
+}
 
 #[server]
 async fn remove_user(id: Uuid, target_id: Uuid) -> Result<(), ServerFnError> {
@@ -20,6 +39,7 @@ async fn remove_user(id: Uuid, target_id: Uuid) -> Result<(), ServerFnError> {
 
 #[component]
 pub fn ManageUser() -> impl IntoView {
+    let auth_check = Resource::new(|| (), |_| check_auth_manage_user());
     let users_res = Resource::new(|| (), move |_| get_users_names());
     let users = move || users_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_user = ServerAction::<RemoveUser>::new();
@@ -28,6 +48,18 @@ pub fn ManageUser() -> impl IntoView {
     let user_id = move || params.with(|p| p.get("id"));
 
     view! {
+        <Suspense fallback=|| view! {
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+                </div>
+            </div>
+        }>
+        {move || {
+            auth_check.get().map(|auth_result| {
+                match auth_result {
+                    Ok(_) => view! {
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-5xl mx-auto">
                 <div class="text-center mb-12">
@@ -112,5 +144,15 @@ pub fn ManageUser() -> impl IntoView {
                 </div>
             </div>
         </div>
+                    }.into_any(),
+                    Err(_) => {
+                        view! {
+                            <Redirect path="/login"/>
+                        }.into_any()
+                    }
+                }
+            })
+        }}
+        </Suspense>
     }
 }

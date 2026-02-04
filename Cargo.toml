@@ -19,6 +19,9 @@ sqlx = { version = "0.8", features = [ "runtime-tokio" ] ,optional = true}
 uuid = { version = "1.19.0", features = ["v4","js","serde"] }
 password-auth = { version = "1"}
 serde = { version = "1.0.228", features = ["derive"] }
+tower-sessions = { version = "0.13", optional = true }
+tower-sessions-memory-store = { version = "0.13", optional = true }
+tower = { version = "0.5", optional = true }
 
 [features]
 hydrate = [
@@ -32,6 +35,9 @@ ssr = [
     "dep:tokio",
     "dep:sqlx",
     "dep:leptos_axum",
+    "dep:tower-sessions",
+    "dep:tower-sessions-memory-store",
+    "dep:tower",
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",

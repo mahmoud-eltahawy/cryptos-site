@@ -3,29 +3,60 @@ use leptos::prelude::*;
 #[server]
 async fn login(username: String, password: String) -> Result<(), ServerFnError> {
     use crate::app::DB;
-    let id = DB
+    use crate::auth::{set_user_session, UserLevel};
+    use tower_sessions::Session;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+
+    let user = DB
         .users
         .lock()
         .unwrap()
         .iter()
         .find(|x| x.name == username)
-        .and_then(|user| {
-            password_auth::verify_password(password, &user.password)
-                .ok()
-                .map(|_| user.id)
-        });
-    let Some(id) = id else {
+        .cloned();
+
+    let Some(user) = user else {
         return Err(ServerFnError::Args(
-            "username or password is wrong".to_string(),
+            "اسم المستخدم أو كلمة السر غير صحيحة".to_string(),
         ));
     };
-    leptos_axum::redirect(&format!("/dashboard/{}", id));
+
+    if password_auth::verify_password(password, &user.password).is_err() {
+        return Err(ServerFnError::Args(
+            "اسم المستخدم أو كلمة السر غير صحيحة".to_string(),
+        ));
+    }
+
+    let level = match user.level {
+        crate::app::Level::Admin => UserLevel::Admin,
+        crate::app::Level::User => UserLevel::User,
+    };
+
+    set_user_session(session, user.id, level)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    leptos_axum::redirect(&format!("/dashboard/{}", user.id));
     Ok(())
 }
 
 #[component]
 pub fn Login() -> impl IntoView {
     let login_ac = ServerAction::<Login>::new();
+    let error_msg = move || {
+        login_ac
+            .value()
+            .get()
+            .and_then(|res| res.err())
+            .map(|e| e.to_string())
+    };
 
     view! {
         <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
@@ -40,6 +71,19 @@ pub fn Login() -> impl IntoView {
                         </h1>
                         <p class="text-gray-600">"مرحباً بك في كريبتوس"</p>
                     </div>
+
+                    {move || error_msg().map(|msg| {
+                        view! {
+                            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <p class="text-sm text-red-800 font-semibold">{msg}</p>
+                                </div>
+                            </div>
+                        }
+                    })}
 
                     <ActionForm action={login_ac}>
                         <div class="space-y-6">

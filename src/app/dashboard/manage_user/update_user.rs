@@ -1,8 +1,26 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
+use leptos_router::components::Redirect;
 use uuid::Uuid;
 
 use crate::app::{Level, dashboard::get_user_by_id};
+
+#[server]
+async fn check_auth_update_user() -> Result<Uuid, ServerFnError> {
+    use tower_sessions::Session;
+    use crate::auth::require_auth;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+    require_auth(session)
+        .await
+        .map_err(|e| ServerFnError::ServerError(e))
+}
 
 #[server]
 async fn update_name(
@@ -63,6 +81,7 @@ async fn update_level(
 
 #[component]
 pub fn UpdateUser() -> impl IntoView {
+    let auth_check = Resource::new(|| (), |_| check_auth_update_user());
     let update_name = ServerAction::<UpdateName>::new();
     let update_password = ServerAction::<UpdatePassword>::new();
     let update_level = ServerAction::<UpdateLevel>::new();
@@ -83,6 +102,18 @@ pub fn UpdateUser() -> impl IntoView {
     let target = move || target_res.get().and_then(|x| x.ok());
 
     view! {
+        <Suspense fallback=|| view! {
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+                </div>
+            </div>
+        }>
+        {move || {
+            auth_check.get().map(|auth_result| {
+                match auth_result {
+                    Ok(_) => view! {
         <Suspense>
         <div class="grid grid-cols-1 gap-5 text-center border-5 rounded-lg my-10 mx-5 p-1 md:p-3 lg:p-5">
             <ActionForm action={update_name}>
@@ -140,6 +171,16 @@ pub fn UpdateUser() -> impl IntoView {
                 </div>
             </ActionForm>
         </div>
+        </Suspense>
+                    }.into_any(),
+                    Err(_) => {
+                        view! {
+                            <Redirect path="/login"/>
+                        }.into_any()
+                    }
+                }
+            })
+        }}
         </Suspense>
     }
 }

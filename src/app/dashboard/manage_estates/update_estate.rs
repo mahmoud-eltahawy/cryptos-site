@@ -1,8 +1,26 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
+use leptos_router::components::Redirect;
 use uuid::Uuid;
 
 use crate::app::Estate;
+
+#[server]
+async fn check_auth_update_estate() -> Result<Uuid, ServerFnError> {
+    use tower_sessions::Session;
+    use crate::auth::require_auth;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+    require_auth(session)
+        .await
+        .map_err(|e| ServerFnError::ServerError(e))
+}
 
 #[server]
 async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
@@ -118,6 +136,7 @@ async fn update_space(
 
 #[component]
 pub fn UpdateEstate() -> impl IntoView {
+    let auth_check = Resource::new(|| (), |_| check_auth_update_estate());
     let update_name = ServerAction::<UpdateName>::new();
     let update_address = ServerAction::<UpdateAddress>::new();
     let update_image_url = ServerAction::<UpdateImageUrl>::new();
@@ -140,6 +159,18 @@ pub fn UpdateEstate() -> impl IntoView {
     let target = move || target_res.get().and_then(|x| x.ok());
 
     view! {
+        <Suspense fallback=|| view! {
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+                </div>
+            </div>
+        }>
+        {move || {
+            auth_check.get().map(|auth_result| {
+                match auth_result {
+                    Ok(_) => view! {
         <Suspense>
         <div class="grid grid-cols-1 gap-5 text-center border-5 rounded-lg my-10 mx-5 p-1 md:p-3 lg:p-5">
             <h1 class="text-2xl font-bold mb-5">"تحديث بيانات العقار"</h1>
@@ -268,6 +299,16 @@ pub fn UpdateEstate() -> impl IntoView {
                 >"العودة إلى إدارة العقارات"</a>
             </div>
         </div>
+        </Suspense>
+                    }.into_any(),
+                    Err(_) => {
+                        view! {
+                            <Redirect path="/login"/>
+                        }.into_any()
+                    }
+                }
+            })
+        }}
         </Suspense>
     }
 }
