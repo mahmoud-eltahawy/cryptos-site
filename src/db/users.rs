@@ -1,10 +1,11 @@
 #[cfg(feature = "ssr")]
-use sqlx::{PgPool, Error};
-#[cfg(feature = "ssr")]
-use uuid::Uuid;
+use {
+    sqlx::{Error, PgPool},
+    uuid::Uuid,
+};
 
 #[cfg(feature = "ssr")]
-use super::models::{User, Level};
+use super::models::{Level, User};
 
 #[cfg(feature = "ssr")]
 pub async fn create_user(
@@ -95,7 +96,11 @@ pub async fn update_user_name(pool: &PgPool, id: Uuid, name: String) -> Result<U
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_user_password(pool: &PgPool, id: Uuid, password: String) -> Result<User, Error> {
+pub async fn update_user_password(
+    pool: &PgPool,
+    id: Uuid,
+    password: String,
+) -> Result<User, Error> {
     let user = sqlx::query_as::<_, User>(
         r#"
         UPDATE users
