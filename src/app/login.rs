@@ -16,12 +16,14 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
         .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
         .clone();
 
-    let user = crate::db::users::get_user_by_name(&pool, &username).await?;
+    let user_error = "اسم المستخدم أو كلمة السر غير صحيحة".to_string();
+
+    let user = crate::db::users::get_user_by_name(&pool, &username)
+        .await
+        .map_err(|_| ServerFnError::new(&user_error))?;
 
     if password_auth::verify_password(&password, &user.password).is_err() {
-        return Err(ServerFnError::Args(
-            "اسم المستخدم أو كلمة السر غير صحيحة".to_string(),
-        ));
+        return Err(ServerFnError::Args(user_error));
     }
 
     let level = match user.level {
@@ -62,18 +64,14 @@ pub fn Login() -> impl IntoView {
                         <p class="text-gray-600">"مرحباً بك في كريبتوس"</p>
                     </div>
 
-                    {move || error_msg().map(|msg| {
-                        view! {
-                            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    <p class="text-sm text-red-800 font-semibold">{msg}</p>
-                                </div>
+                    <ShowLet some=error_msg let(msg)>
+                        <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <RedCircleIcon/>
+                                <p class="text-sm text-red-800 font-semibold">{msg}</p>
                             </div>
-                        }
-                    })}
+                        </div>
+                    </ShowLet>
 
                     <ActionForm action={login_ac}>
                         <div class="space-y-6">
@@ -133,5 +131,14 @@ pub fn Login() -> impl IntoView {
                 </div>
             </div>
         </div>
+    }
+}
+
+#[component]
+fn RedCircleIcon() -> impl IntoView {
+    view! {
+        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
     }
 }
