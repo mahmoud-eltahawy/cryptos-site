@@ -3,28 +3,12 @@ use leptos_router::components::Redirect;
 use leptos_router::hooks::use_params_map;
 
 use crate::app::Estate;
+use crate::auth::check_auth;
 
 pub mod add_estate;
 pub mod estate_details;
 pub mod public_estates;
 pub mod update_estate;
-
-#[server]
-async fn check_auth_manage_estates() -> Result<uuid::Uuid, ServerFnError> {
-    use crate::auth::require_auth;
-    use tower_sessions::Session;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
-}
 
 #[server]
 async fn remove_estate(id: uuid::Uuid, target_id: uuid::Uuid) -> Result<(), ServerFnError> {
@@ -51,7 +35,7 @@ async fn get_estates() -> Result<Vec<Estate>, ServerFnError> {
 
 #[component]
 pub fn ManageEstates() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth_manage_estates());
+    let auth_check = Resource::new(|| (), |_| check_auth());
     let estates_res = Resource::new(|| (), move |_| get_estates());
     let estates = move || estates_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_estate = ServerAction::<RemoveEstate>::new();

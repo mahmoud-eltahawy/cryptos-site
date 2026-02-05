@@ -2,28 +2,10 @@ use leptos::prelude::*;
 use leptos_router::components::Redirect;
 use uuid::Uuid;
 
-use crate::app::dashboard::get_users_names;
+use crate::{app::dashboard::get_users_names, auth::check_auth};
 
 pub mod add_user;
 pub mod update_user;
-
-#[server]
-async fn check_auth_manage_user() -> Result<Uuid, ServerFnError> {
-    use crate::auth::require_auth;
-    use tower_sessions::Session;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
-}
 
 #[server]
 async fn remove_user(target_id: Uuid) -> Result<(), ServerFnError> {
@@ -39,7 +21,7 @@ async fn remove_user(target_id: Uuid) -> Result<(), ServerFnError> {
 
 #[component]
 pub fn ManageUser() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth_manage_user());
+    let auth_check = Resource::new(|| (), |_| check_auth());
     let users_res = Resource::new(|| (), move |_| get_users_names());
     let users = move || users_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_user = ServerAction::<RemoveUser>::new();

@@ -1,25 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::components::Redirect;
-use uuid::Uuid;
 
-use crate::auth::Level;
-
-#[server]
-async fn check_auth_add_user() -> Result<Uuid, ServerFnError> {
-    use crate::auth::require_auth;
-    use tower_sessions::Session;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
-}
+use crate::auth::{Level, check_auth};
 
 #[server]
 async fn add_user(name: String, level: Level, password: String) -> Result<(), ServerFnError> {
@@ -36,7 +18,7 @@ async fn add_user(name: String, level: Level, password: String) -> Result<(), Se
 
 #[component]
 pub fn AddUser() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth_add_user());
+    let auth_check = Resource::new(|| (), |_| check_auth());
     let add_user = ServerAction::<AddUser>::new();
 
     let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);

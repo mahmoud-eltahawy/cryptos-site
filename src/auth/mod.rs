@@ -1,3 +1,5 @@
+use leptos::prelude::*;
+
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "ssr")]
 use tower_sessions::Session;
@@ -66,6 +68,24 @@ pub async fn require_auth(session: Session) -> Result<Uuid, String> {
     get_user_id_from_session(session)
         .await
         .ok_or_else(|| "Unauthorized: Please log in".to_string())
+}
+
+#[server]
+pub async fn check_auth() -> Result<uuid::Uuid, ServerFnError> {
+    use crate::auth::require_auth;
+    use tower_sessions::Session;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+
+    require_auth(session)
+        .await
+        .map_err(|e| ServerFnError::ServerError(e))
 }
 
 #[cfg(feature = "ssr")]

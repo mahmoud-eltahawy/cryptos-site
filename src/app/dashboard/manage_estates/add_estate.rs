@@ -1,24 +1,9 @@
 use leptos::prelude::*;
-use leptos_router::hooks::use_params_map;
 use leptos_router::components::Redirect;
+use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
-#[server]
-async fn check_auth_add_estate() -> Result<Uuid, ServerFnError> {
-    use tower_sessions::Session;
-    use crate::auth::require_auth;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
-}
+use crate::auth::check_auth;
 
 #[server]
 async fn add_estate(
@@ -38,7 +23,7 @@ async fn add_estate(
         address,
         image_url,
         price_in_cents,
-        space_in_meters
+        space_in_meters,
     )
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -48,7 +33,7 @@ async fn add_estate(
 
 #[component]
 pub fn AddEstate() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth_add_estate());
+    let auth_check = Resource::new(|| (), |_| check_auth());
     let params = use_params_map();
     let user_id = move || params.with(|p| p.get("id"));
 

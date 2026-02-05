@@ -4,23 +4,7 @@ use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::Estate;
-
-#[server]
-async fn check_auth_update_estate() -> Result<Uuid, ServerFnError> {
-    use crate::auth::require_auth;
-    use tower_sessions::Session;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
-}
+use crate::app::dashboard::check_auth;
 
 #[server]
 async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
@@ -158,7 +142,7 @@ async fn update_space(
 
 #[component]
 pub fn UpdateEstate() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth_update_estate());
+    let auth_check = Resource::new(|| (), |_| check_auth());
     let update_name = ServerAction::<UpdateName>::new();
     let update_address = ServerAction::<UpdateAddress>::new();
     let update_image_url = ServerAction::<UpdateImageUrl>::new();

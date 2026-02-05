@@ -4,6 +4,7 @@ use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::SecureUser;
+use crate::auth::check_auth;
 
 pub mod manage_estates;
 pub mod manage_user;
@@ -21,24 +22,6 @@ async fn get_dashboard_stats() -> Result<(usize, usize), ServerFnError> {
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok((users_count as usize, estates_count as usize))
-}
-
-#[server]
-async fn check_auth() -> Result<Uuid, ServerFnError> {
-    use crate::auth::require_auth;
-    use tower_sessions::Session;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
 }
 
 #[server]

@@ -4,24 +4,7 @@ use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::dashboard::get_user_by_id;
-use crate::auth::Level;
-
-#[server]
-async fn check_auth_update_user() -> Result<Uuid, ServerFnError> {
-    use crate::auth::require_auth;
-    use tower_sessions::Session;
-
-    let parts = use_context::<axum::http::request::Parts>()
-        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
-    let session = parts
-        .extensions
-        .get::<Session>()
-        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
-        .clone();
-    require_auth(session)
-        .await
-        .map_err(|e| ServerFnError::ServerError(e))
-}
+use crate::auth::{Level, check_auth};
 
 #[server]
 async fn update_name(
@@ -77,7 +60,7 @@ async fn update_level(
 
 #[component]
 pub fn UpdateUser() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth_update_user());
+    let auth_check = Resource::new(|| (), |_| check_auth());
     let update_name = ServerAction::<UpdateName>::new();
     let update_password = ServerAction::<UpdatePassword>::new();
     let update_level = ServerAction::<UpdateLevel>::new();
