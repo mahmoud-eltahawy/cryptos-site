@@ -14,23 +14,22 @@ pub async fn create_estate(
     image_url: String,
     price_in_cents: i64,
     space_in_meters: i32,
-) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+) -> Result<(), Error> {
+    sqlx::query!(
         r#"
-        INSERT INTO estates (name, address, image_url, price_in_cents, space_in_meters)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
+            INSERT INTO estates (name, address, image_url, price_in_cents, space_in_meters)
+            VALUES ($1, $2, $3, $4, $5)
         "#,
+        &name,
+        &address,
+        &image_url,
+        price_in_cents,
+        space_in_meters
     )
-    .bind(&name)
-    .bind(&address)
-    .bind(&image_url)
-    .bind(price_in_cents)
-    .bind(space_in_meters)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
@@ -65,43 +64,36 @@ pub async fn get_all_estates(pool: &PgPool) -> Result<Vec<Estate>, Error> {
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_estate_name(pool: &PgPool, id: Uuid, name: String) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+pub async fn update_estate_name(pool: &PgPool, id: Uuid, name: String) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE estates
         SET name = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
         "#,
+        &name,
+        id
     )
-    .bind(&name)
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_estate_address(
-    pool: &PgPool,
-    id: Uuid,
-    address: String,
-) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+pub async fn update_estate_address(pool: &PgPool, id: Uuid, address: String) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE estates
         SET address = $1, updated_at = NOW()
         WHERE id = $2
         RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,
+        "#,&address,id
     )
-    .bind(&address)
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
@@ -109,43 +101,35 @@ pub async fn update_estate_image_url(
     pool: &PgPool,
     id: Uuid,
     image_url: String,
-) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE estates
         SET image_url = $1, updated_at = NOW()
         WHERE id = $2
         RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,
+        "#,&image_url,id
     )
-    .bind(&image_url)
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_description(
-    pool: &PgPool,
-    id: Uuid,
-    description: String,
-) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+pub async fn update_description(pool: &PgPool, id: Uuid, description: String) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE estates
         SET description = $1, updated_at = NOW()
         WHERE id = $2
         RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,
+        "#,&description,id
     )
-    .bind(&description)
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
@@ -153,21 +137,19 @@ pub async fn update_estate_price(
     pool: &PgPool,
     id: Uuid,
     price_in_cents: i64,
-) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE estates
         SET price_in_cents = $1, updated_at = NOW()
         WHERE id = $2
         RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,
+        "#,price_in_cents,id
     )
-    .bind(price_in_cents)
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
@@ -175,32 +157,30 @@ pub async fn update_estate_space(
     pool: &PgPool,
     id: Uuid,
     space_in_meters: i32,
-) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE estates
         SET space_in_meters = $1, updated_at = NOW()
         WHERE id = $2
         RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,
+        "#,space_in_meters,id
     )
-    .bind(space_in_meters)
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
-    Ok(estate)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
 pub async fn delete_estate(pool: &PgPool, id: Uuid) -> Result<(), Error> {
-    sqlx::query(
+    sqlx::query!(
         r#"
         DELETE FROM estates
         WHERE id = $1
         "#,
+        id
     )
-    .bind(id)
     .execute(pool)
     .await?;
 
@@ -209,7 +189,7 @@ pub async fn delete_estate(pool: &PgPool, id: Uuid) -> Result<(), Error> {
 
 #[cfg(feature = "ssr")]
 pub async fn count_estates(pool: &PgPool) -> Result<i64, Error> {
-    let count = sqlx::query_scalar::<_, i64>(
+    let count = sqlx::query_scalar!(
         r#"
         SELECT COUNT(*) FROM estates
         "#,
@@ -217,5 +197,5 @@ pub async fn count_estates(pool: &PgPool) -> Result<i64, Error> {
     .fetch_one(pool)
     .await?;
 
-    Ok(count)
+    Ok(count.unwrap_or(0))
 }
