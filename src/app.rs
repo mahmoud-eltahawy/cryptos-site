@@ -3,7 +3,7 @@ use crate::app::{
         Dashboard,
         manage_estates::{
             ManageEstates, add_estate::AddEstate, estate_details::EstateDetails,
-            update_estate::UpdateEstate,
+            public_estates::PublicEstates, update_estate::UpdateEstate,
         },
         manage_user::{ManageUser, add_user::AddUser, update_user::UpdateUser},
     },
@@ -60,6 +60,7 @@ pub fn App() -> impl IntoView {
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
+                    <Route path=StaticSegment("/estates") view=PublicEstates/>
                     <Route path=path!("/dashboard/updateUser/:targetId") view=UpdateUser/>
                     <Route path=path!("/dashboard/updateEstate/:targetId/:userId") view=UpdateEstate/>
                     <Route path=path!("/dashboard/estateDetails/:targetId/:userId") view=EstateDetails/>

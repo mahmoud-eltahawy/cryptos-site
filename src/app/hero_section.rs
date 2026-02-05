@@ -70,7 +70,7 @@ fn ButtonsRow() -> impl IntoView {
 fn ExploreButton() -> impl IntoView {
     view! {
         <a
-            href="#estates"
+            href="/estates"
             class="group px-8 py-4 bg-white text-blue-600 font-bold text-lg rounded-full shadow-2xl hover:shadow-white/20 hover:scale-110 transition-all duration-300 flex items-center gap-3"
         >
             "استكشف العقارات"

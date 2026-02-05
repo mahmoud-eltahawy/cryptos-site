@@ -9,7 +9,7 @@ pub fn Navbar() -> impl IntoView {
                     <Logo/>
                     <div class="flex items-center gap-4">
                         <a
-                            href="#estates"
+                            href="/estates"
                             class="text-gray-700 hover:text-blue-600 font-semibold px-4 py-2 rounded-lg transition-all duration-300 hover:bg-blue-50"
                         >
                             "عرض العقارات"
