@@ -22,12 +22,7 @@ async fn check_auth_add_user() -> Result<Uuid, ServerFnError> {
 }
 
 #[server]
-async fn add_user(
-    id: Uuid,
-    name: String,
-    level: Level,
-    password: String,
-) -> Result<(), ServerFnError> {
+async fn add_user(name: String, level: Level, password: String) -> Result<(), ServerFnError> {
     let pool = use_context::<sqlx::PgPool>()
         .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
 
@@ -35,7 +30,7 @@ async fn add_user(
     crate::db::users::create_user(&pool, name, hashed, level)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    leptos_axum::redirect(&format!("/dashboard/manageUser/{}", id));
+    leptos_axum::redirect("/dashboard/manageUser");
     Ok(())
 }
 
@@ -45,15 +40,6 @@ pub fn AddUser() -> impl IntoView {
     let add_user = ServerAction::<AddUser>::new();
 
     let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
-    let user_id = move || {
-        auth_check
-            .get()
-            .transpose()
-            .ok()
-            .flatten()
-            .map(|x| x.to_string())
-            .unwrap_or_default()
-    };
 
     #[component]
     pub fn Spinner() -> impl IntoView {
@@ -81,7 +67,6 @@ pub fn AddUser() -> impl IntoView {
                         <Banner/>
                         <div class="p-8">
                             <ActionForm action={add_user}>
-                                <input class="hidden" type="text" value={user_id} name="id"/>
                                 <div class="space-y-6">
                                     <UserNameInput/>
                                     <UserLevelInput/>

@@ -26,14 +26,14 @@ async fn check_auth_manage_user() -> Result<Uuid, ServerFnError> {
 }
 
 #[server]
-async fn remove_user(id: Uuid, target_id: Uuid) -> Result<(), ServerFnError> {
+async fn remove_user(target_id: Uuid) -> Result<(), ServerFnError> {
     let pool = use_context::<sqlx::PgPool>()
         .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
 
     crate::db::users::delete_user(&pool, target_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    leptos_axum::redirect(&format!("/dashboard/manageUser/{}", id));
+    leptos_axum::redirect("/dashboard/manageUser");
     Ok(())
 }
 
@@ -95,7 +95,6 @@ pub fn ManageUser() -> impl IntoView {
                                 <ActionForm action={remove_user}>
                                     <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100">
                                         <input class="hidden" name="target_id" value={target_id.to_string()}/>
-                                        <input class="hidden" name="id" value={user_id}/>
 
                                         <div class="flex items-center justify-between gap-4">
                                             <div class="flex items-center gap-4 flex-1">

@@ -15,21 +15,20 @@ pub async fn create_user(
     name: String,
     password: String,
     level: Level,
-) -> Result<User, Error> {
-    let user = sqlx::query_as::<_, User>(
+) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         INSERT INTO users (name, password, level)
         VALUES ($1, $2, $3)
-        RETURNING id, name, password, level, created_at, updated_at
         "#,
+        &name,
+        &password,
+        &level.to_string()
     )
-    .bind(&name)
-    .bind(&password)
-    .bind(&level)
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
-    Ok(user)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
@@ -80,61 +79,54 @@ pub async fn get_all_users(pool: &PgPool) -> Result<Vec<User>, Error> {
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_user_name(pool: &PgPool, id: Uuid, name: String) -> Result<User, Error> {
-    let user = sqlx::query_as::<_, User>(
+pub async fn update_user_name(pool: &PgPool, id: Uuid, name: String) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE users
         SET name = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, password, level, created_at, updated_at
         "#,
+        &name,
+        id
     )
-    .bind(&name)
-    .bind(id)
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
-    Ok(user)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_user_password(
-    pool: &PgPool,
-    id: Uuid,
-    password: String,
-) -> Result<User, Error> {
-    let user = sqlx::query_as::<_, User>(
+pub async fn update_user_password(pool: &PgPool, id: Uuid, password: String) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE users
         SET password = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, password, level, created_at, updated_at
         "#,
+        &password,
+        id
     )
-    .bind(&password)
-    .bind(id)
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
-    Ok(user)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]
-pub async fn update_user_level(pool: &PgPool, id: Uuid, level: Level) -> Result<User, Error> {
-    let user = sqlx::query_as::<_, User>(
+pub async fn update_user_level(pool: &PgPool, id: Uuid, level: Level) -> Result<(), Error> {
+    sqlx::query!(
         r#"
         UPDATE users
         SET level = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, password, level, created_at, updated_at
         "#,
+        &level.to_string(),
+        id
     )
-    .bind(&level)
-    .bind(id)
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
-    Ok(user)
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]

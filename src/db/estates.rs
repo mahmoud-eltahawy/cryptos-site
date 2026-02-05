@@ -26,7 +26,7 @@ pub async fn create_estate(
         price_in_cents,
         space_in_meters
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -34,14 +34,15 @@ pub async fn create_estate(
 
 #[cfg(feature = "ssr")]
 pub async fn get_estate_by_id(pool: &PgPool, id: Uuid) -> Result<Estate, Error> {
-    let estate = sqlx::query_as::<_, Estate>(
+    let estate = sqlx::query_as!(
+        Estate,
         r#"
-        SELECT id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
+        SELECT id, name, address, image_url,description, price_in_cents, space_in_meters
         FROM estates
         WHERE id = $1
         "#,
+        id
     )
-    .bind(id)
     .fetch_one(pool)
     .await?;
 
@@ -50,9 +51,10 @@ pub async fn get_estate_by_id(pool: &PgPool, id: Uuid) -> Result<Estate, Error> 
 
 #[cfg(feature = "ssr")]
 pub async fn get_all_estates(pool: &PgPool) -> Result<Vec<Estate>, Error> {
-    let estates = sqlx::query_as::<_, Estate>(
+    let estates = sqlx::query_as!(
+        Estate,
         r#"
-        SELECT id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
+        SELECT id, name, address, image_url,description, price_in_cents, space_in_meters
         FROM estates
         ORDER BY created_at DESC
         "#,
@@ -74,7 +76,7 @@ pub async fn update_estate_name(pool: &PgPool, id: Uuid, name: String) -> Result
         &name,
         id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -87,10 +89,11 @@ pub async fn update_estate_address(pool: &PgPool, id: Uuid, address: String) -> 
         UPDATE estates
         SET address = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,&address,id
+        "#,
+        &address,
+        id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -107,10 +110,11 @@ pub async fn update_estate_image_url(
         UPDATE estates
         SET image_url = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,&image_url,id
+        "#,
+        &image_url,
+        id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -123,10 +127,11 @@ pub async fn update_description(pool: &PgPool, id: Uuid, description: String) ->
         UPDATE estates
         SET description = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,&description,id
+        "#,
+        &description,
+        id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -143,10 +148,11 @@ pub async fn update_estate_price(
         UPDATE estates
         SET price_in_cents = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,price_in_cents,id
+        "#,
+        price_in_cents,
+        id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -163,10 +169,11 @@ pub async fn update_estate_space(
         UPDATE estates
         SET space_in_meters = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, address, image_url,description, price_in_cents, space_in_meters, created_at, updated_at
-        "#,space_in_meters,id
+        "#,
+        space_in_meters,
+        id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())

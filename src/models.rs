@@ -3,9 +3,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-#[cfg(feature = "ssr")]
-use chrono::{DateTime, Utc};
-
 use crate::auth::Level;
 
 #[derive(Debug, Clone)]
@@ -15,10 +12,6 @@ pub struct User {
     pub name: String,
     pub password: String,
     pub level: Level,
-    #[cfg(feature = "ssr")]
-    pub created_at: DateTime<Utc>,
-    #[cfg(feature = "ssr")]
-    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,12 +24,6 @@ pub struct Estate {
     pub price_in_cents: i64,
     pub space_in_meters: i32,
     pub description: String,
-    #[cfg(feature = "ssr")]
-    #[serde(skip)]
-    pub created_at: DateTime<Utc>,
-    #[cfg(feature = "ssr")]
-    #[serde(skip)]
-    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

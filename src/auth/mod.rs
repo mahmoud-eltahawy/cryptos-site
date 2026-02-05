@@ -4,6 +4,8 @@ use tower_sessions::Session;
 #[cfg(feature = "ssr")]
 use uuid::Uuid;
 
+use std::fmt::Display;
+
 pub const USER_ID_KEY: &str = "user_id";
 pub const USER_LEVEL_KEY: &str = "user_level";
 
@@ -13,6 +15,16 @@ pub const USER_LEVEL_KEY: &str = "user_level";
 pub enum Level {
     Admin,
     User,
+}
+
+impl Display for Level {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let res = match self {
+            Level::Admin => "Admin",
+            Level::User => "User",
+        };
+        write!(f, "{res}")
+    }
 }
 
 #[cfg(feature = "ssr")]
