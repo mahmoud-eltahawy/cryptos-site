@@ -1,14 +1,14 @@
 use leptos::prelude::*;
-use leptos_router::hooks::use_params_map;
 use leptos_router::components::Redirect;
+use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::Estate;
 
 #[server]
 async fn check_auth_update_estate() -> Result<Uuid, ServerFnError> {
-    use tower_sessions::Session;
     use crate::auth::require_auth;
+    use tower_sessions::Session;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
@@ -27,9 +27,7 @@ async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
     let pool = use_context::<sqlx::PgPool>()
         .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
 
-    let estate = crate::db::estates::get_estate_by_id(&pool, id)
-        .await
-        .ok();
+    let estate = crate::db::estates::get_estate_by_id(&pool, id).await.ok();
     let Some(estate) = estate else {
         return Err(ServerFnError::ServerError(
             "could not find estate with id".to_string(),
@@ -51,7 +49,10 @@ async fn update_name(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
+    leptos_axum::redirect(&format!(
+        "/dashboard/updateEstate/{}/{}",
+        target_id, user_id
+    ));
     Ok(())
 }
 
@@ -68,7 +69,10 @@ async fn update_address(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
+    leptos_axum::redirect(&format!(
+        "/dashboard/updateEstate/{}/{}",
+        target_id, user_id
+    ));
     Ok(())
 }
 
@@ -85,7 +89,30 @@ async fn update_image_url(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
+    leptos_axum::redirect(&format!(
+        "/dashboard/updateEstate/{}/{}",
+        target_id, user_id
+    ));
+    Ok(())
+}
+
+#[server]
+async fn update_description(
+    user_id: uuid::Uuid,
+    target_id: uuid::Uuid,
+    description: String,
+) -> Result<(), ServerFnError> {
+    let pool = use_context::<sqlx::PgPool>()
+        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+
+    crate::db::estates::update_description(&pool, target_id, description)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    leptos_axum::redirect(&format!(
+        "/dashboard/updateEstate/{}/{}",
+        target_id, user_id
+    ));
     Ok(())
 }
 
@@ -102,7 +129,10 @@ async fn update_price(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
+    leptos_axum::redirect(&format!(
+        "/dashboard/updateEstate/{}/{}",
+        target_id, user_id
+    ));
     Ok(())
 }
 
@@ -119,7 +149,10 @@ async fn update_space(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    leptos_axum::redirect(&format!("/dashboard/updateEstate/{}/{}", target_id, user_id));
+    leptos_axum::redirect(&format!(
+        "/dashboard/updateEstate/{}/{}",
+        target_id, user_id
+    ));
     Ok(())
 }
 
@@ -129,6 +162,7 @@ pub fn UpdateEstate() -> impl IntoView {
     let update_name = ServerAction::<UpdateName>::new();
     let update_address = ServerAction::<UpdateAddress>::new();
     let update_image_url = ServerAction::<UpdateImageUrl>::new();
+    let update_description = ServerAction::<UpdateDescription>::new();
     let update_price = ServerAction::<UpdatePrice>::new();
     let update_space = ServerAction::<UpdateSpace>::new();
 
@@ -229,6 +263,27 @@ pub fn UpdateEstate() -> impl IntoView {
                         class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         type="submit"
                         value="تحديث الصورة"
+                    />
+                </div>
+            </ActionForm>
+
+            <ActionForm action={update_description}>
+                <input class="hidden" type="text" value={user_id} name="user_id"/>
+                <input class="hidden" type="text" value={target_id} name="target_id"/>
+                <div class="grid grid-cols-1 gap-2 my-5">
+                    <label
+                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                        for="description"
+                    >"الوصف"</label>
+                    <textarea
+                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
+                        name="description"
+                        id="description"
+                    >{move || target().map(|x| x.description)}</textarea>
+                    <input
+                        class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        type="submit"
+                        value="تحديث الوصف"
                     />
                 </div>
             </ActionForm>

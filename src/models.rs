@@ -30,6 +30,7 @@ pub struct Estate {
     pub image_url: String,
     pub price_in_cents: i64,
     pub space_in_meters: i32,
+    pub description: String,
     #[cfg(feature = "ssr")]
     #[serde(skip)]
     pub created_at: DateTime<Utc>,

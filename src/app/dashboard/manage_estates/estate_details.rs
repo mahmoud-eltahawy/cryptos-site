@@ -52,7 +52,7 @@ pub fn EstateDetails() -> impl IntoView {
                 </div>
             }>
                 {move || estate().map(|estate| {
-                    let Estate {  name, address, image_url, price_in_cents, space_in_meters, .. } = estate;
+                    let Estate {  name, address, image_url,description, price_in_cents, space_in_meters, .. } = estate;
                     view! {
                         <div class="max-w-5xl mx-auto">
                             <div class="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
@@ -103,6 +103,12 @@ pub fn EstateDetails() -> impl IntoView {
                                             <p class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                                                 {format!("{:.2}", price_in_cents as f32 / 100.0)}" جنيه"
                                             </p>
+                                        </div>
+
+                                        <div class="md:col-span-2 bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-green-100">
+                                            <p
+                                                class="text-center text-lg font-light leading-relaxed text-slate-700 tracking-tight antialiased"
+                                            >{description}</p>
                                         </div>
                                     </div>
                                 </div>
