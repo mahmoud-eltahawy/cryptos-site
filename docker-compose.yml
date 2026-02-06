@@ -16,18 +16,15 @@ services:
     restart: always
     ports:
       - 8080:8080
-  minio:
-      image: minio/minio
+
+  rustfs:
+      image: rustfs/rustfs:latest
       restart: unless-stopped
       ports:
         - "9000:9000" # API Port
         - "9001:9001" # Web Console Port
-      environment:
-        MINIO_ROOT_USER: minio_admin
-        MINIO_ROOT_PASSWORD: minio_password
       volumes:
-        - minio_data:/data
-      command: server /data --console-address ":9001"
+        - rustfs_data:/data
 
 volumes:
-  minio_data:
+  rustfs_data:
