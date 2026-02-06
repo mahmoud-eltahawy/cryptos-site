@@ -14,17 +14,19 @@ pub async fn create_estate(
     image_url: String,
     price_in_cents: i64,
     space_in_meters: i32,
+    description: String,
 ) -> Result<(), Error> {
     sqlx::query!(
         r#"
-            INSERT INTO estates (name, address, image_url, price_in_cents, space_in_meters)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO estates (name, address, image_url, price_in_cents, space_in_meters,description)
+            VALUES ($1, $2, $3, $4, $5,$6)
         "#,
         &name,
         &address,
         &image_url,
         price_in_cents,
-        space_in_meters
+        space_in_meters,
+        &description
     )
     .execute(pool)
     .await?;

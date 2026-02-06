@@ -1,19 +1,17 @@
 use leptos::prelude::*;
 use leptos_router::components::Redirect;
-use leptos_router::hooks::use_params_map;
-use uuid::Uuid;
 use web_sys::{FormData, HtmlFormElement, HtmlInputElement, SubmitEvent, wasm_bindgen::JsCast};
 
 use crate::auth::check_auth;
 
 #[server]
 async fn add_estate(
-    id: Uuid,
     name: String,
     address: String,
     image_url: String,
     price_in_cents: i64,
     space_in_meters: i32,
+    description: String,
 ) -> Result<(), ServerFnError> {
     let app_state = use_context::<crate::AppState>()
         .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
@@ -25,19 +23,17 @@ async fn add_estate(
         image_url,
         price_in_cents,
         space_in_meters,
+        description,
     )
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
-    leptos_axum::redirect(&format!("/dashboard/manageEstates/{}", id));
+    leptos_axum::redirect("/dashboard/manageEstates");
     Ok(())
 }
 
 #[component]
 pub fn AddEstate() -> impl IntoView {
     let auth_check = Resource::new(|| (), |_| check_auth());
-    let params = use_params_map();
-    let user_id = move || params.with(|p| p.get("id"));
-
     let add_estate = ServerAction::<AddEstate>::new();
 
     let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
@@ -56,8 +52,6 @@ pub fn AddEstate() -> impl IntoView {
                         <Banner/>
                         <div class="p-8">
                             <ActionForm action={add_estate}>
-                                <input class="hidden" type="text" value={user_id} name="id"/>
-
                                 <div class="space-y-6">
                                     <div class="group">
                                         <label
@@ -153,6 +147,28 @@ pub fn AddEstate() -> impl IntoView {
                                             " السعر يُدخل بالقرش (1 جنيه = 100 قرش)"
                                         </p>
                                     </div>
+
+                                    <div class="group">
+                                        <label
+                                            class="block text-gray-700 font-bold mb-3 text-lg flex items-center gap-2"
+                                            for="description"
+                                        >
+                                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                            "الوصف"
+                                        </label>
+                                        <textarea
+                                            class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
+                                            type="text"
+                                            name="description"
+                                            id="description"
+                                            placeholder="ضع اي معلومات اضافية هنا"
+                                            required
+                                            minlength="15"
+                                        ></textarea>
+                                    </div>
                                 </div>
 
                                     <UploadImage/>
@@ -217,49 +233,10 @@ async fn upload_image(data: server_fn::codec::MultipartData) -> Result<String, S
         .body(image_data.into())
         .content_type(image_kind)
         .send()
-        .await
-        .map_err(|x| dbg!(x))?;
+        .await?;
 
     Ok(format!("http://localhost:9000/{bucket}/{image_name}"))
 }
-
-// let _ = std::fs::write("file.png", data);
-
-// let mut multipart = leptos_axum::extract_multipart()
-//     .await
-//     .map_err(|e| ServerFnError::new(format!("Multipart error: {e}")))?;
-
-// let mut final_url = String::new();
-
-// // 3. Process fields
-// while let Ok(Some(field)) = multipart.next_field().await {
-//     let name = field.name().unwrap_or_default().to_string();
-//     let filename = field.file_name().unwrap_or_default().to_string();
-
-//     if name == "image_file" && !filename.is_empty() {
-//         // ACCUMULATE: Collect all bytes for this field into memory first
-//         let data = field
-//             .bytes()
-//             .await
-//             .map_err(|e| ServerFnError::new(format!("Failed to read bytes: {e}")))?;
-
-//         let bucket = "my-photos";
-//         let key = format!("uploads/{}", filename);
-
-//         // 4. Upload the accumulated buffer to S3/MinIO
-//         client
-//             .put_object()
-//             .bucket(bucket)
-//             .key(&key)
-//             .body(data.into()) // Converts Bytes into S3 Body
-//             .content_type("image/jpeg")
-//             .send()
-//             .await
-//             .map_err(|e| ServerFnError::new(format!("S3 Upload failed: {e:?}")))?;
-
-//         final_url = format!("http://localhost:9000/{}/{}", bucket, key);
-//     }
-// }
 
 #[island]
 fn UploadImage() -> impl IntoView {
@@ -328,6 +305,12 @@ fn UploadImage() -> impl IntoView {
                 </form>
             }
         >
+            <input
+                class="hidden"
+                value={image_url.clone()}
+                name="image_url"
+                type="text"
+            />
             <img
                 src={image_url}
                 alt="estate image"
