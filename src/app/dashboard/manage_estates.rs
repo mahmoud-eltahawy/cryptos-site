@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 
+use crate::LoadingSpinner;
 use crate::app::Estate;
 use crate::auth::AuthRequired;
 
@@ -150,15 +151,5 @@ pub fn ManageEstates() -> impl IntoView {
             </div>
         </div>
         </AuthRequired>
-    }
-}
-
-#[component]
-fn LoadingSpinner() -> impl IntoView {
-    view! {
-        <div class="text-center py-12">
-            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
-        </div>
     }
 }

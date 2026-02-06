@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use uuid::Uuid;
 
-use crate::{app::SecureUser, auth::AuthRequired};
+use crate::{LoadingSpinner, app::SecureUser, auth::AuthRequired};
 
 pub mod manage_estates;
 pub mod manage_user;
@@ -123,18 +123,9 @@ fn Stats() -> impl IntoView {
     let stats_res = Resource::new(|| (), |_| get_dashboard_stats());
     let stats = move || stats_res.get().transpose().ok().flatten();
 
-    #[component]
-    fn Spinner() -> impl IntoView {
-        view! {
-            <div class="col-span-1 md:col-span-2 flex justify-center py-4">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-        }
-    }
-
     view! {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-3xl mx-auto">
-            <Suspense fallback=Spinner>
+            <Suspense fallback=LoadingSpinner>
                 <ShowLet
                     some=stats
                     let((user_count,estate_count))

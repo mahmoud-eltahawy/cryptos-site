@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use uuid::Uuid;
 
-use crate::{app::dashboard::get_users_names, auth::AuthRequired};
+use crate::{LoadingSpinner, app::dashboard::get_users_names, auth::AuthRequired};
 
 pub mod add_user;
 pub mod update_user;
@@ -24,22 +24,12 @@ pub fn ManageUser() -> impl IntoView {
     let users = move || users_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_user = ServerAction::<RemoveUser>::new();
 
-    #[component]
-    fn UsersSpinner() -> impl IntoView {
-        view! {
-            <div class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
-            </div>
-        }
-    }
-
     view! {
         <AuthRequired>
             <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
                 <div class="max-w-5xl mx-auto">
                     <Titles/>
-                    <Suspense fallback=UsersSpinner>
+                    <Suspense fallback=LoadingSpinner>
                         <div class="space-y-4 mb-8">
                             <For
                                 each={users}

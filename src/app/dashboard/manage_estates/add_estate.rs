@@ -352,15 +352,3 @@ fn Banner() -> impl IntoView {
         </div>
     }
 }
-
-#[component]
-fn Spinner() -> impl IntoView {
-    view! {
-        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-            <div class="text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
-            </div>
-        </div>
-    }
-}
