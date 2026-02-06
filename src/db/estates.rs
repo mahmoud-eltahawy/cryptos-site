@@ -52,6 +52,22 @@ pub async fn get_estate_by_id(pool: &PgPool, id: Uuid) -> Result<Estate, Error> 
 }
 
 #[cfg(feature = "ssr")]
+pub async fn get_image_url_by_id(pool: &PgPool, id: Uuid) -> Result<String, Error> {
+    let res = sqlx::query!(
+        r#"
+        SELECT image_url
+        FROM estates
+        WHERE id = $1
+        "#,
+        id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(res.image_url)
+}
+
+#[cfg(feature = "ssr")]
 pub async fn get_all_estates(pool: &PgPool) -> Result<Vec<Estate>, Error> {
     let estates = sqlx::query_as!(
         Estate,

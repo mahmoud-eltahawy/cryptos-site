@@ -15,9 +15,26 @@ async fn remove_estate(target_id: uuid::Uuid) -> Result<(), ServerFnError> {
     let app_state = use_context::<crate::AppState>()
         .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
+    let image_url = crate::db::estates::get_image_url_by_id(&app_state.pool, target_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let image_url = std::path::PathBuf::from(image_url);
+    let name = image_url.file_name().unwrap().to_str().unwrap().to_string();
+
     crate::db::estates::delete_estate(&app_state.pool, target_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    app_state
+        .s3
+        .client
+        .delete_object()
+        .bucket(app_state.s3.bucket)
+        .key(&name)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(format!("S3 Delete failed: {e:?}")))?;
+
     leptos_axum::redirect("/dashboard/manageEstates");
     Ok(())
 }
