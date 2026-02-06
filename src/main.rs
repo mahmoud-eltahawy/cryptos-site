@@ -1,11 +1,12 @@
 #[cfg(feature = "ssr")]
 use {
-    aws_config::BehaviorVersion,
-    aws_sdk_s3::{Client, config::Credentials},
     axum::Router,
-    cryptos_site::AppState,
-    cryptos_site::app::*,
-    cryptos_site::db::{create_pool, run_migrations},
+    cryptos_site::{
+        AppState,
+        app::*,
+        db::{create_pool, run_migrations},
+        s3::create_s3_client,
+    },
     leptos::logging::log,
     leptos::prelude::*,
     leptos_axum::{LeptosRoutes, generate_route_list},
@@ -13,24 +14,6 @@ use {
     tower_sessions::{Expiry, SessionManagerLayer},
     tower_sessions_sqlx_store::PostgresStore,
 };
-
-#[cfg(feature = "ssr")]
-async fn create_s3_client() -> Client {
-    let username = var("S3_USERNAME").expect("S3_USERNAME must be set in .env file");
-    let password = var("S3_PASSWORD").expect("S3_PASSWORD must be set in .env file");
-    let region = var("S3_REGION").expect("S3_REGION must be set in .env file");
-    let endpoint_url = var("S3_ENDPOINT_URL").expect("S3_ENDPOINT_URL must be set in .env file");
-    let creds = Credentials::new(username, password, None, None, "static");
-    log!("configuring s3 ...");
-    let config = aws_config::defaults(BehaviorVersion::latest())
-        .credentials_provider(creds)
-        .region(aws_config::Region::new(region))
-        .endpoint_url(endpoint_url)
-        .load()
-        .await;
-    log!("s3 setup complete!");
-    Client::new(&config)
-}
 
 #[cfg(feature = "ssr")]
 #[tokio::main]

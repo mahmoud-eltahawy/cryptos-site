@@ -2,6 +2,7 @@ use leptos::prelude::*;
 use leptos_router::components::Redirect;
 use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
+use web_sys::{FormData, HtmlFormElement, HtmlInputElement, SubmitEvent, wasm_bindgen::JsCast};
 
 use crate::auth::check_auth;
 
@@ -165,52 +166,128 @@ pub fn AddEstate() -> impl IntoView {
     }
 }
 
-#[server]
-async fn upload_image() -> Result<String, ServerFnError> {
+#[server(input = server_fn::codec::MultipartFormData)]
+async fn upload_image(data: server_fn::codec::MultipartData) -> Result<String, ServerFnError> {
+    // let app_state = use_context::<crate::AppState>()
+    //     .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
+
+    let mut data = data.into_inner().unwrap();
+    // let client = app_state.s3_client;
+
+    while let Ok(Some(mut field)) = data.next_field().await {
+        println!("\n[NEXT FIELD]\n");
+        let name = field.name().unwrap_or_default().to_string();
+        println!("  [NAME] {name}");
+        while let Ok(Some(chunk)) = field.chunk().await {
+            println!("      [CHUNK] {chunk:#?}", chunk = chunk.len());
+        }
+    }
     Ok("https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800".to_string())
 }
 
+// let _ = std::fs::write("file.png", data);
+
+// let mut multipart = leptos_axum::extract_multipart()
+//     .await
+//     .map_err(|e| ServerFnError::new(format!("Multipart error: {e}")))?;
+
+// let mut final_url = String::new();
+
+// // 3. Process fields
+// while let Ok(Some(field)) = multipart.next_field().await {
+//     let name = field.name().unwrap_or_default().to_string();
+//     let filename = field.file_name().unwrap_or_default().to_string();
+
+//     if name == "image_file" && !filename.is_empty() {
+//         // ACCUMULATE: Collect all bytes for this field into memory first
+//         let data = field
+//             .bytes()
+//             .await
+//             .map_err(|e| ServerFnError::new(format!("Failed to read bytes: {e}")))?;
+
+//         let bucket = "my-photos";
+//         let key = format!("uploads/{}", filename);
+
+//         // 4. Upload the accumulated buffer to S3/MinIO
+//         client
+//             .put_object()
+//             .bucket(bucket)
+//             .key(&key)
+//             .body(data.into()) // Converts Bytes into S3 Body
+//             .content_type("image/jpeg")
+//             .send()
+//             .await
+//             .map_err(|e| ServerFnError::new(format!("S3 Upload failed: {e:?}")))?;
+
+//         final_url = format!("http://localhost:9000/{}/{}", bucket, key);
+//     }
+// }
+
 #[island]
 fn UploadImage() -> impl IntoView {
-    let upload_action = ServerAction::<UploadImage>::new();
+    let file_input = NodeRef::new();
+
+    let upload_action =
+        Action::new_local(|data: &web_sys::FormData| upload_image(data.clone().into()));
+
+    let on_submit = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        let input: HtmlInputElement = file_input.get().unwrap();
+        let files = input.files().unwrap();
+        let file = files.get(0).unwrap();
+        let name = file.name();
+        let kind = file.type_();
+
+        let target = ev.target().unwrap().unchecked_into::<HtmlFormElement>();
+        let form_data = FormData::new_with_form(&target).unwrap();
+        let _ = form_data.append_with_str("image_name", &name);
+        let _ = form_data.append_with_str("image_kind", &kind);
+        upload_action.dispatch_local(form_data);
+    };
+
     let image = move || upload_action.value().get().transpose().ok().flatten();
+
     view! {
     <div class="flex flex-wrap gap-4 justify-center mt-10">
         <ShowLet
             some=image
             let(image_url)
             fallback=move || view!{
-                <ActionForm action={upload_action}>
-                    <div class="grid grid-cols-2 gap-3 shadow-lg pb-2 mb-5">
-                        <label
-                            class="block text-gray-700 font-bold mb-3 text-lg flex items-center gap-2"
-                            for="image"
-                        >
-                            <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            "الصورة"
-                        </label>
-                        <input
-                            class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
-                            type="file"
-                            accept=".png, .jpg, .jpeg, .webp"
-                            name="image"
-                            id="image"
-                            required
-                        />
-                        <button
-                            class="group px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-500 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3"
-                            type="submit"
-                        >
-                            <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            "تأكيد الصورة"
-                        </button>
-                        <CancelButton/>
-                    </div>
-                </ActionForm>
+                <form
+                    id="INNER_FORM"
+                    on:submit=on_submit
+                    class="grid grid-cols-2 gap-3 shadow-lg pb-2 mb-5"
+                >
+                    <label
+                        class="block text-gray-700 font-bold mb-3 text-lg flex items-center gap-2"
+                        for="data"
+                    >
+                        <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        "الصورة"
+                    </label>
+                    <input
+                        node_ref={file_input}
+                        class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
+                        type="file"
+                        accept=".png, .jpg, .jpeg, .webp"
+                        name="data"
+                        id="data"
+                        required
+                    />
+                    <button
+                        class="group px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-500 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3"
+                        type="submit"
+                        form="INNER_FORM"
+                    >
+                        <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        "تأكيد الصورة"
+                    </button>
+                    <CancelButton/>
+                </form>
             }
         >
             <img

@@ -12,6 +12,7 @@ pub struct AppState {
 
 #[cfg(feature = "ssr")]
 pub mod db;
+pub mod s3;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
