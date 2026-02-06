@@ -73,7 +73,6 @@ pub async fn require_auth(session: Session) -> Result<Uuid, String> {
 
 #[server]
 async fn check_auth() -> Result<uuid::Uuid, ServerFnError> {
-    use crate::auth::require_auth;
     use tower_sessions::Session;
 
     let parts = use_context::<axum::http::request::Parts>()
@@ -85,6 +84,23 @@ async fn check_auth() -> Result<uuid::Uuid, ServerFnError> {
         .clone();
 
     require_auth(session)
+        .await
+        .map_err(|e| ServerFnError::ServerError(e))
+}
+
+#[server]
+async fn check_admin() -> Result<uuid::Uuid, ServerFnError> {
+    use tower_sessions::Session;
+
+    let parts = use_context::<axum::http::request::Parts>()
+        .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
+    let session = parts
+        .extensions
+        .get::<Session>()
+        .ok_or_else(|| ServerFnError::new("No session found".to_string()))?
+        .clone();
+
+    require_admin(session)
         .await
         .map_err(|e| ServerFnError::ServerError(e))
 }
@@ -124,6 +140,29 @@ where
             <Show
                 when={autherized}
                 fallback=fallback
+            >
+                {children()}
+            </Show>
+        </Suspense>
+
+    }
+}
+
+#[component]
+pub fn AdminOnly<C>(children: TypedChildrenFn<C>) -> impl IntoView
+where
+    C: IntoView + 'static,
+{
+    let admin_id = Resource::new(|| (), |_| check_admin());
+
+    let autherized = move || admin_id.get().map(|x| x.is_ok()).unwrap_or(true);
+
+    let children = children.into_inner();
+
+    view! {
+        <Suspense fallback=AuthSpinner>
+            <Show
+                when={autherized}
             >
                 {children()}
             </Show>

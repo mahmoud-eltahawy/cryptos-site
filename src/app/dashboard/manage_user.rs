@@ -1,7 +1,11 @@
 use leptos::prelude::*;
 use uuid::Uuid;
 
-use crate::{LoadingSpinner, app::dashboard::get_users_names, auth::AuthRequired};
+use crate::{
+    LoadingSpinner,
+    app::dashboard::get_users_names,
+    auth::{AdminOnly, AuthRequired},
+};
 
 pub mod add_user;
 pub mod update_user;
@@ -22,7 +26,6 @@ async fn remove_user(target_id: Uuid) -> Result<(), ServerFnError> {
 pub fn ManageUser() -> impl IntoView {
     let users_res = Resource::new(|| (), move |_| get_users_names());
     let users = move || users_res.get().and_then(|x| x.ok()).unwrap_or_default();
-    let remove_user = ServerAction::<RemoveUser>::new();
 
     view! {
         <AuthRequired>
@@ -36,67 +39,92 @@ pub fn ManageUser() -> impl IntoView {
                                 key=|x| x.0
                                 let((target_id, name))
                             >
-                                <ActionForm action={remove_user}>
-                                    <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100">
-                                        <input class="hidden" name="target_id" value={target_id.to_string()}/>
-
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div class="flex items-center gap-4 flex-1">
-                                                <div class="bg-gradient-to-br from-blue-500 to-purple-500 rounded-full p-3 shadow-md">
-                                                    <UserIcon/>
-                                                </div>
-                                                <h3 class="text-xl font-bold text-gray-800">{name}</h3>
+                                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div class="flex items-center gap-4 flex-1">
+                                            <div class="bg-gradient-to-br from-blue-500 to-purple-500 rounded-full p-3 shadow-md">
+                                                <UserIcon/>
                                             </div>
+                                            <h3 class="text-xl font-bold text-gray-800">{name}</h3>
+                                        </div>
 
-                                            <div class="flex items-center gap-3">
-                                                <a
-                                                    href={format!("/dashboard/updateUser/{}",target_id)}
-                                                    class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
-                                                >
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                    </svg>
-                                                    "تحديث"
-                                                </a>
-
-                                                <button
-                                                    type="submit"
-                                                    class="px-5 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
-                                                >
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                    "حذف"
-                                                </button>
-                                            </div>
+                                        <div class="flex items-center gap-3">
+                                            <UpdateButton target_id/>
+                                            <DeleteButton target_id/>
                                         </div>
                                     </div>
-                                </ActionForm>
+                                </div>
                             </For>
                         </div>
                     </Suspense>
-
-                    <div class="flex justify-center gap-4">
-                        <a
-                            href="/dashboard/addUser"
-                            class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
-                        >
-                            <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            "إضافة مستخدم جديد"
-                        </a>
-
-                        <a
-                            href="/dashboard"
-                            class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
-                        >
-                            "← العودة إلى لوحة التحكم"
-                        </a>
-                    </div>
+                    <NavButton/>
                 </div>
             </div>
         </AuthRequired>
+    }
+}
+
+#[component]
+fn UpdateButton(target_id: Uuid) -> impl IntoView {
+    view! {
+        <AdminOnly>
+        <a
+            href={format!("/dashboard/updateUser/{}",target_id)}
+            class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            "تحديث"
+        </a>
+        </AdminOnly>
+    }
+}
+
+#[component]
+fn DeleteButton(target_id: Uuid) -> impl IntoView {
+    let remove_user = ServerAction::<RemoveUser>::new();
+    view! {
+        <AdminOnly>
+        <ActionForm action={remove_user}>
+            <input class="hidden" name="target_id" value={target_id.to_string()}/>
+            <button
+                type="submit"
+                class="px-5 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                "حذف"
+            </button>
+        </ActionForm>
+        </AdminOnly>
+    }
+}
+
+#[component]
+fn NavButton() -> impl IntoView {
+    view! {
+        <div class="flex justify-center gap-4">
+            <AdminOnly>
+            <a
+                href="/dashboard/addUser"
+                class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
+            >
+                <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                "إضافة مستخدم جديد"
+            </a>
+            </AdminOnly>
+
+            <a
+                href="/dashboard"
+                class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
+            >
+                "← العودة إلى لوحة التحكم"
+            </a>
+        </div>
     }
 }
 
