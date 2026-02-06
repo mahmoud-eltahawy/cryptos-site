@@ -27,15 +27,6 @@ pub fn ManageUser() -> impl IntoView {
     let remove_user = ServerAction::<RemoveUser>::new();
 
     let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
-    let user_id = move || {
-        auth_check
-            .get()
-            .transpose()
-            .ok()
-            .flatten()
-            .map(|x| x.to_string())
-            .unwrap_or_default()
-    };
 
     #[component]
     fn Spinner() -> impl IntoView {
@@ -126,7 +117,7 @@ pub fn ManageUser() -> impl IntoView {
                         </a>
 
                         <a
-                            href={move || format!("/dashboard/{}", user_id())}
+                            href="/dashboard"
                             class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
                         >
                             "← العودة إلى لوحة التحكم"
