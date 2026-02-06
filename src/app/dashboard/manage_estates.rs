@@ -1,8 +1,9 @@
 use leptos::prelude::*;
+use uuid::Uuid;
 
 use crate::LoadingSpinner;
 use crate::app::Estate;
-use crate::auth::AuthRequired;
+use crate::auth::{AdminOnly, AuthRequired};
 
 pub mod add_estate;
 pub mod estate_details;
@@ -36,7 +37,6 @@ async fn get_estates() -> Result<Vec<Estate>, ServerFnError> {
 pub fn ManageEstates() -> impl IntoView {
     let estates_res = Resource::new(|| (), move |_| get_estates());
     let estates = move || estates_res.get().and_then(|x| x.ok()).unwrap_or_default();
-    let remove_estate = ServerAction::<RemoveEstate>::new();
 
     view! {
         <AuthRequired>
@@ -96,60 +96,97 @@ pub fn ManageEstates() -> impl IntoView {
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div class="flex flex-wrap gap-3">
-                                        <a
-                                            href={format!("/dashboard/estateDetails/{}",id)}
-                                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
-                                        >
-                                            "التفاصيل"
-                                        </a>
-
-                                        <a
-                                            href={format!("/dashboard/updateEstate/{}",id)}
-                                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
-                                        >
-                                            "تحديث"
-                                        </a>
-
-                                        <div class="flex-1">
-                                            <ActionForm action={remove_estate}>
-                                                <input class="hidden" name="target_id" value={id.to_string()}/>
-                                                <button
-                                                    type="submit"
-                                                    class="w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
-                                                >
-                                                    "حذف"
-                                                </button>
-                                            </ActionForm>
-                                        </div>
-                                    </div>
+                                    <ActionsButtons id/>
                                 </div>
                             </div>
                         </For>
                     </div>
                 </Suspense>
-
-                <div class="flex justify-center gap-4 mt-12">
-                    <a
-                        href="/dashboard/addEstate"
-                        class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
-                    >
-                        <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        "إضافة عقار جديد"
-                    </a>
-
-                    <a
-                        href="/dashboard"
-                        class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
-                    >
-                        "← العودة إلى لوحة التحكم"
-                    </a>
-                </div>
+                <NavButtons/>
             </div>
         </div>
         </AuthRequired>
+    }
+}
+#[component]
+fn ActionsButtons(id: Uuid) -> impl IntoView {
+    view! {
+        <div class="flex flex-wrap gap-3">
+            <DetailsButton id/>
+            <UpdateButton id/>
+            <DeleteButton id/>
+        </div>
+    }
+}
+
+#[component]
+fn DetailsButton(id: Uuid) -> impl IntoView {
+    view! {
+        <a
+            href={format!("/dashboard/estateDetails/{}",id)}
+            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+        >
+            "التفاصيل"
+        </a>
+    }
+}
+
+#[component]
+fn UpdateButton(id: Uuid) -> impl IntoView {
+    view! {
+        <AdminOnly>
+            <a
+                href={format!("/dashboard/updateEstate/{}",id)}
+                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+            >
+                "تحديث"
+            </a>
+        </AdminOnly>
+    }
+}
+
+#[component]
+fn DeleteButton(id: Uuid) -> impl IntoView {
+    let remove_estate = ServerAction::<RemoveEstate>::new();
+    view! {
+        <AdminOnly>
+            <div class="flex-1">
+                <ActionForm action={remove_estate}>
+                    <input class="hidden" name="target_id" value={id.to_string()}/>
+                    <button
+                        type="submit"
+                        class="w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
+                    >
+                        "حذف"
+                    </button>
+                </ActionForm>
+            </div>
+        </AdminOnly>
+    }
+}
+
+#[component]
+fn NavButtons() -> impl IntoView {
+    view! {
+        <div class="flex justify-center gap-4 mt-12">
+            <AdminOnly>
+                <a
+                    href="/dashboard/addEstate"
+                    class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
+                >
+                    <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    "إضافة عقار جديد"
+                </a>
+            </AdminOnly>
+
+            <a
+                href="/dashboard"
+                class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
+            >
+                "← العودة إلى لوحة التحكم"
+            </a>
+        </div>
     }
 }
