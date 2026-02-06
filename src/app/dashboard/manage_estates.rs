@@ -1,8 +1,7 @@
 use leptos::prelude::*;
-use leptos_router::components::Redirect;
 
 use crate::app::Estate;
-use crate::auth::check_auth;
+use crate::auth::AuthRequired;
 
 pub mod add_estate;
 pub mod estate_details;
@@ -34,39 +33,22 @@ async fn get_estates() -> Result<Vec<Estate>, ServerFnError> {
 
 #[component]
 pub fn ManageEstates() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth());
     let estates_res = Resource::new(|| (), move |_| get_estates());
     let estates = move || estates_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_estate = ServerAction::<RemoveEstate>::new();
 
     view! {
-        <Suspense fallback=|| view! {
-            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-                <div class="text-center">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
-                </div>
-            </div>
-        }>
-        {move || {
-            auth_check.get().map(|auth_result| {
-                match auth_result {
-                    Ok(_) => view! {
+        <AuthRequired redirect={format!("/login")}>
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 p-3">
                         "إدارة العقارات"
                     </h1>
                     <p class="text-gray-600 text-lg">"عرض وتعديل العقارات المتاحة"</p>
                 </div>
 
-                <Suspense fallback=|| view! {
-                    <div class="text-center py-12">
-                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
-                    </div>
-                }>
+                <Suspense fallback=LoadingSpinner>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                         <For
                             each={estates}
@@ -167,15 +149,16 @@ pub fn ManageEstates() -> impl IntoView {
                 </div>
             </div>
         </div>
-                    }.into_any(),
-                    Err(_) => {
-                        view! {
-                            <Redirect path="/login"/>
-                        }.into_any()
-                    }
-                }
-            })
-        }}
-        </Suspense>
+        </AuthRequired>
+    }
+}
+
+#[component]
+fn LoadingSpinner() -> impl IntoView {
+    view! {
+        <div class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-4 text-gray-600">"جاري التحميل..."</p>
+        </div>
     }
 }

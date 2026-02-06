@@ -30,7 +30,6 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    println!("{} loged in", user.name);
     leptos_axum::redirect(&format!("/dashboard"));
     Ok(())
 }

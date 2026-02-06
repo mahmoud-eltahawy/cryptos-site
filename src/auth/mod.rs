@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 
+use leptos_router::components::Redirect;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "ssr")]
 use tower_sessions::Session;
@@ -101,5 +102,44 @@ pub async fn require_admin(session: Session) -> Result<Uuid, String> {
     match level {
         Level::Admin => Ok(user_id),
         Level::User => Err("Forbidden: Admin access required".to_string()),
+    }
+}
+
+#[component]
+pub fn AuthRequired<C>(children: TypedChildrenFn<C>, redirect: String) -> impl IntoView
+where
+    C: IntoView + 'static,
+{
+    let auth_check = Resource::new(|| (), |_| check_auth());
+    let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
+    let children = children.into_inner();
+
+    let fallback = move || {
+        view! {
+            <Redirect path={redirect.clone()}/>
+        }
+    };
+    view! {
+        <Suspense fallback=AuthSpinner>
+            <Show
+                when={autherized}
+                fallback=fallback
+            >
+                {children()}
+            </Show>
+        </Suspense>
+
+    }
+}
+
+#[component]
+fn AuthSpinner() -> impl IntoView {
+    view! {
+        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+            <div class="text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
+            </div>
+        </div>
     }
 }
