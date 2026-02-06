@@ -72,7 +72,7 @@ pub async fn require_auth(session: Session) -> Result<Uuid, String> {
 }
 
 #[server]
-pub async fn check_auth() -> Result<uuid::Uuid, ServerFnError> {
+async fn check_auth() -> Result<uuid::Uuid, ServerFnError> {
     use crate::auth::require_auth;
     use tower_sessions::Session;
 
@@ -106,7 +106,7 @@ pub async fn require_admin(session: Session) -> Result<Uuid, String> {
 }
 
 #[component]
-pub fn AuthRequired<C>(children: TypedChildrenFn<C>, redirect: String) -> impl IntoView
+pub fn AuthRequired<C>(children: TypedChildrenFn<C>) -> impl IntoView
 where
     C: IntoView + 'static,
 {
@@ -116,7 +116,7 @@ where
 
     let fallback = move || {
         view! {
-            <Redirect path={redirect.clone()}/>
+            <Redirect path="/login"/>
         }
     };
     view! {

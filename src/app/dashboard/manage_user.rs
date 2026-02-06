@@ -1,8 +1,7 @@
 use leptos::prelude::*;
-use leptos_router::components::Redirect;
 use uuid::Uuid;
 
-use crate::{app::dashboard::get_users_names, auth::check_auth};
+use crate::{app::dashboard::get_users_names, auth::AuthRequired};
 
 pub mod add_user;
 pub mod update_user;
@@ -21,24 +20,10 @@ async fn remove_user(target_id: Uuid) -> Result<(), ServerFnError> {
 
 #[component]
 pub fn ManageUser() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth());
     let users_res = Resource::new(|| (), move |_| get_users_names());
     let users = move || users_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_user = ServerAction::<RemoveUser>::new();
 
-    let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
-
-    #[component]
-    fn Spinner() -> impl IntoView {
-        view! {
-            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-                <div class="text-center">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p class="mt-4 text-gray-600">"جاري التحقق من الهوية..."</p>
-                </div>
-            </div>
-        }
-    }
     #[component]
     fn UsersSpinner() -> impl IntoView {
         view! {
@@ -50,11 +35,7 @@ pub fn ManageUser() -> impl IntoView {
     }
 
     view! {
-        <Suspense fallback=Spinner>
-        <Show
-            when=autherized
-            fallback=move ||view!{<Redirect path="/login"/>}
-        >
+        <AuthRequired>
             <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
                 <div class="max-w-5xl mx-auto">
                     <Titles/>
@@ -125,8 +106,7 @@ pub fn ManageUser() -> impl IntoView {
                     </div>
                 </div>
             </div>
-        </Show>
-        </Suspense>
+        </AuthRequired>
     }
 }
 

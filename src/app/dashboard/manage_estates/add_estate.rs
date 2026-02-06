@@ -1,8 +1,7 @@
 use leptos::prelude::*;
-use leptos_router::components::Redirect;
 use web_sys::{FormData, HtmlFormElement, HtmlInputElement, SubmitEvent, wasm_bindgen::JsCast};
 
-use crate::auth::check_auth;
+use crate::auth::AuthRequired;
 
 #[server]
 async fn add_estate(
@@ -33,19 +32,10 @@ async fn add_estate(
 
 #[component]
 pub fn AddEstate() -> impl IntoView {
-    let auth_check = Resource::new(|| (), |_| check_auth());
     let add_estate = ServerAction::<AddEstate>::new();
 
-    let autherized = move || auth_check.get().map(|x| x.is_ok()).unwrap_or(true);
-
     view! {
-        <Suspense fallback=Spinner>
-        <Show
-            when=autherized
-            fallback=move ||view! {
-                <Redirect path="/login"/>
-            }
-        >
+        <AuthRequired>
             <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
                 <div class="max-w-3xl mx-auto">
                     <div class="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
@@ -177,8 +167,7 @@ pub fn AddEstate() -> impl IntoView {
                     </div>
                 </div>
             </div>
-        </Show>
-        </Suspense>
+        </AuthRequired>
     }
 }
 

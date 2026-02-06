@@ -38,7 +38,7 @@ pub fn ManageEstates() -> impl IntoView {
     let remove_estate = ServerAction::<RemoveEstate>::new();
 
     view! {
-        <AuthRequired redirect={format!("/login")}>
+        <AuthRequired>
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-12">
