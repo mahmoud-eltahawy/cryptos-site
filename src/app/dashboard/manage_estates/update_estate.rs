@@ -322,7 +322,7 @@ pub fn UpdateEstate() -> impl IntoView {
 
             <div class="mt-5">
                 <a
-                    href={move || format!("/dashboard/manageEstates/{}", user_id())}
+                    href="/dashboard/manageEstates"
                     class="px-6 py-2 text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >"العودة إلى إدارة العقارات"</a>
             </div>

@@ -1,6 +1,5 @@
 use crate::app::Estate;
 use leptos::prelude::*;
-use uuid::Uuid;
 
 #[server]
 async fn get_public_estates() -> Result<Vec<Estate>, ServerFnError> {
@@ -83,7 +82,7 @@ pub fn PublicEstates() -> impl IntoView {
 
                                     <div class="flex flex-wrap gap-3">
                                         <a
-                                            href={move || format!("/dashboard/estateDetails/{}/{}", id, Uuid::nil())}
+                                            href={format!("/dashboard/estateDetails/{}", id)}
                                             class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
                                         >
                                             "التفاصيل"

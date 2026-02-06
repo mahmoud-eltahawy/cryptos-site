@@ -116,14 +116,14 @@ pub fn ManageEstates() -> impl IntoView {
 
                                     <div class="flex flex-wrap gap-3">
                                         <a
-                                            href={move || format!("/dashboard/estateDetails/{}",id)}
+                                            href={format!("/dashboard/estateDetails/{}",id)}
                                             class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
                                         >
                                             "التفاصيل"
                                         </a>
 
                                         <a
-                                            href={move || format!("/dashboard/updateEstate/{}",id)}
+                                            href={format!("/dashboard/updateEstate/{}",id)}
                                             class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
                                         >
                                             "تحديث"
@@ -149,7 +149,7 @@ pub fn ManageEstates() -> impl IntoView {
 
                 <div class="flex justify-center gap-4 mt-12">
                     <a
-                        href={move || format!("/dashboard/addEstate")}
+                        href="/dashboard/addEstate"
                         class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
                     >
                         <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

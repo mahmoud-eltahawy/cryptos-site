@@ -165,7 +165,7 @@ pub fn Buttons() -> impl IntoView {
             </button>
 
             <a
-                href={move || format!("/dashboard/manageUser")}
+                href="/dashboard/manageUser"
                 class="px-8 py-4 bg-white text-gray-700 font-bold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-300 hover:border-gray-400 flex items-center gap-2"
             >
                 <CloseIcon/>
