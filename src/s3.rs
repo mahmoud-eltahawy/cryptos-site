@@ -1,7 +1,9 @@
 #[cfg(feature = "ssr")]
 use {
     aws_config::BehaviorVersion,
-    aws_sdk_s3::{Client, config::Credentials},
+    aws_sdk_s3::{
+        Client, config::Credentials, error::SdkError, operation::put_object::PutObjectError,
+    },
     std::env::var,
 };
 
@@ -58,5 +60,27 @@ impl S3 {
             .await;
         println!("s3 setup complete!");
         Client::new(&config)
+    }
+
+    pub async fn store_image(
+        &self,
+        name: &String,
+        kind: Option<String>,
+        data: Vec<u8>,
+    ) -> Result<String, SdkError<PutObjectError>> {
+        let s = self
+            .client
+            .put_object()
+            .bucket(&self.bucket)
+            .key(name)
+            .body(data.into());
+        let s = match kind {
+            Some(kind) => s.content_type(kind),
+            None => s,
+        };
+
+        s.send().await?;
+
+        Ok(format!("{}/{}/{}", self.endpoint_url, self.bucket, name))
     }
 }

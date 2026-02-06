@@ -214,21 +214,13 @@ async fn upload_image(data: server_fn::codec::MultipartData) -> Result<String, S
     }
     let prefix = uuid::Uuid::new_v4().to_string();
     image_name = prefix + &image_name;
-    let bucket = app_state.s3.bucket;
-    let endpoint = app_state.s3.endpoint_url;
 
-    app_state
+    let url = app_state
         .s3
-        .client
-        .put_object()
-        .bucket(&bucket)
-        .key(&image_name)
-        .body(image_data.into())
-        .content_type(image_kind)
-        .send()
+        .store_image(&image_name, Some(image_kind), image_data.into())
         .await?;
 
-    Ok(format!("{endpoint}/{bucket}/{image_name}"))
+    Ok(url)
 }
 
 #[island]
