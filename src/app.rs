@@ -62,13 +62,13 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("/login") view=Login/>
                     <Route path=StaticSegment("/estates") view=PublicEstates/>
                     <Route path=path!("/dashboard/updateUser/:targetId") view=UpdateUser/>
-                    <Route path=path!("/dashboard/updateEstate/:targetId/:userId") view=UpdateEstate/>
-                    <Route path=path!("/dashboard/estateDetails/:targetId/:userId") view=EstateDetails/>
+                    <Route path=path!("/dashboard/updateEstate/:targetId") view=UpdateEstate/>
+                    <Route path=path!("/dashboard/estateDetails/:targetId") view=EstateDetails/>
                     <Route path=path!("/dashboard/addUser") view=AddUser/>
                     <Route path=path!("/dashboard/manageUser") view=ManageUser/>
-                    <Route path=path!("/dashboard/manageEstates/:id") view=ManageEstates/>
-                    <Route path=path!("/dashboard/addEstate/:id") view=AddEstate/>
-                    <Route path=path!("/dashboard/:id") view=Dashboard/>
+                    <Route path=path!("/dashboard/manageEstates") view=ManageEstates/>
+                    <Route path=path!("/dashboard/addEstate") view=AddEstate/>
+                    <Route path=path!("/dashboard") view=Dashboard/>
                 </Routes>
             </main>
         </Router>

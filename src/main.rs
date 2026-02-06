@@ -21,12 +21,14 @@ async fn create_s3_client() -> Client {
     let region = var("S3_REGION").expect("S3_REGION must be set in .env file");
     let endpoint_url = var("S3_ENDPOINT_URL").expect("S3_ENDPOINT_URL must be set in .env file");
     let creds = Credentials::new(username, password, None, None, "static");
+    log!("configuring s3 ...");
     let config = aws_config::defaults(BehaviorVersion::latest())
         .credentials_provider(creds)
         .region(aws_config::Region::new(region))
         .endpoint_url(endpoint_url)
         .load()
         .await;
+    log!("s3 setup complete!");
     Client::new(&config)
 }
 
@@ -67,7 +69,7 @@ async fn main() {
         .expect("Failed to migrate session store");
 
     let session_layer = SessionManagerLayer::new(session_store)
-        .with_secure(false) // Set to true in production with HTTPS
+        .with_secure(false) //TODO Set to true in production with HTTPS
         .with_expiry(Expiry::OnInactivity(
             tower_sessions::cookie::time::Duration::seconds(3600),
         ));
@@ -88,7 +90,6 @@ async fn main() {
         .layer(session_layer)
         .with_state(app_state);
 
-    // run our app with hyper
     log!("listening on http://{}", &addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app.into_make_service())

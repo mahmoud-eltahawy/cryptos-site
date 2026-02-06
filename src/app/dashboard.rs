@@ -1,6 +1,5 @@
 use leptos::prelude::*;
 use leptos_router::components::Redirect;
-use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 
 use crate::app::SecureUser;
@@ -83,19 +82,17 @@ pub fn Dashboard() -> impl IntoView {
 
 #[component]
 fn CardsSection() -> impl IntoView {
-    let params = use_params_map();
-    let user_id = move || params.with(|p| p.get("id"));
     view! {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card
                 name="ادارة المستخدمين"
-                href={format!("/dashboard/manageUser")}
+                href="/dashboard/manageUser"
                 icon="👥"
                 gradient="from-blue-500 to-cyan-500"
             />
             <Card
                 name="ادارة العقارات"
-                href={format!("/dashboard/manageEstates/{}",user_id().unwrap_or_default())}
+                href="/dashboard/manageEstates"
                 icon="🏢"
                 gradient="from-purple-500 to-pink-500"
             />
@@ -220,7 +217,7 @@ fn EstateIcon() -> impl IntoView {
 
 #[component]
 fn Card(
-    href: String,
+    href: &'static str,
     name: &'static str,
     icon: &'static str,
     gradient: &'static str,

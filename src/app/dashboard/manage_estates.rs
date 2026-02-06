@@ -1,6 +1,5 @@
 use leptos::prelude::*;
 use leptos_router::components::Redirect;
-use leptos_router::hooks::use_params_map;
 
 use crate::app::Estate;
 use crate::auth::check_auth;
@@ -11,14 +10,14 @@ pub mod public_estates;
 pub mod update_estate;
 
 #[server]
-async fn remove_estate(id: uuid::Uuid, target_id: uuid::Uuid) -> Result<(), ServerFnError> {
+async fn remove_estate(target_id: uuid::Uuid) -> Result<(), ServerFnError> {
     let app_state = use_context::<crate::AppState>()
         .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
     crate::db::estates::delete_estate(&app_state.pool, target_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    leptos_axum::redirect(&format!("/dashboard/manageEstates/{}", id));
+    leptos_axum::redirect("/dashboard/manageEstates");
     Ok(())
 }
 
@@ -39,9 +38,6 @@ pub fn ManageEstates() -> impl IntoView {
     let estates_res = Resource::new(|| (), move |_| get_estates());
     let estates = move || estates_res.get().and_then(|x| x.ok()).unwrap_or_default();
     let remove_estate = ServerAction::<RemoveEstate>::new();
-
-    let params = use_params_map();
-    let user_id = move || params.with(|p| p.get("id"));
 
     view! {
         <Suspense fallback=|| view! {
@@ -120,14 +116,14 @@ pub fn ManageEstates() -> impl IntoView {
 
                                     <div class="flex flex-wrap gap-3">
                                         <a
-                                            href={move || format!("/dashboard/estateDetails/{}/{}",id,user_id().unwrap_or("".to_string()))}
+                                            href={move || format!("/dashboard/estateDetails/{}",id)}
                                             class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
                                         >
                                             "التفاصيل"
                                         </a>
 
                                         <a
-                                            href={move || format!("/dashboard/updateEstate/{}/{}",id,user_id().unwrap_or("".to_string()))}
+                                            href={move || format!("/dashboard/updateEstate/{}",id)}
                                             class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
                                         >
                                             "تحديث"
@@ -135,7 +131,6 @@ pub fn ManageEstates() -> impl IntoView {
 
                                         <div class="flex-1">
                                             <ActionForm action={remove_estate}>
-                                                <input class="hidden" name="id" value={user_id}/>
                                                 <input class="hidden" name="target_id" value={id.to_string()}/>
                                                 <button
                                                     type="submit"
@@ -154,7 +149,7 @@ pub fn ManageEstates() -> impl IntoView {
 
                 <div class="flex justify-center gap-4 mt-12">
                     <a
-                        href={move || format!("/dashboard/addEstate/{}",user_id().unwrap_or("".to_string()))}
+                        href={move || format!("/dashboard/addEstate")}
                         class="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3"
                     >
                         <svg class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +159,7 @@ pub fn ManageEstates() -> impl IntoView {
                     </a>
 
                     <a
-                        href={move || format!("/dashboard/{}", user_id().unwrap_or("".to_string()))}
+                        href="/dashboard"
                         class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
                     >
                         "← العودة إلى لوحة التحكم"
