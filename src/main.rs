@@ -5,7 +5,7 @@ use {
         AppState,
         app::*,
         db::{create_pool, run_migrations},
-        s3::create_s3_client,
+        s3,
     },
     leptos::logging::log,
     leptos::prelude::*,
@@ -61,7 +61,7 @@ async fn main() {
     let app_state = AppState {
         leptos_options: leptos_options.clone(),
         pool: pool.clone(),
-        s3_client: create_s3_client().await,
+        s3: s3::S3::get_from_env().await,
     };
 
     let app = Router::new()

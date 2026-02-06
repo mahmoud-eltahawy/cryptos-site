@@ -5,16 +5,17 @@ pub mod auth;
 pub mod models;
 
 #[cfg(feature = "ssr")]
+pub mod db;
+#[cfg(feature = "ssr")]
+pub mod s3;
+
+#[cfg(feature = "ssr")]
 #[derive(Clone, axum::extract::FromRef)]
 pub struct AppState {
     pub leptos_options: leptos::config::LeptosOptions,
     pub pool: sqlx::PgPool,
-    pub s3_client: aws_sdk_s3::Client,
+    pub s3: s3::S3,
 }
-
-#[cfg(feature = "ssr")]
-pub mod db;
-pub mod s3;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

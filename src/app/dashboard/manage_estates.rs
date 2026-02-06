@@ -42,13 +42,7 @@ pub fn ManageEstates() -> impl IntoView {
         <AuthRequired>
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-7xl mx-auto">
-                <div class="text-center mb-12">
-                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 p-3">
-                        "إدارة العقارات"
-                    </h1>
-                    <p class="text-gray-600 text-lg">"عرض وتعديل العقارات المتاحة"</p>
-                </div>
-
+                <Titles/>
                 <Suspense fallback=LoadingSpinner>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                         <For
@@ -108,6 +102,7 @@ pub fn ManageEstates() -> impl IntoView {
         </AuthRequired>
     }
 }
+
 #[component]
 fn ActionsButtons(id: Uuid) -> impl IntoView {
     view! {
@@ -187,6 +182,18 @@ fn NavButtons() -> impl IntoView {
             >
                 "← العودة إلى لوحة التحكم"
             </a>
+        </div>
+    }
+}
+
+#[component]
+fn Titles() -> impl IntoView {
+    view! {
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 p-3">
+                "إدارة العقارات"
+            </h1>
+            <p class="text-gray-600 text-lg">"عرض وتعديل العقارات المتاحة"</p>
         </div>
     }
 }

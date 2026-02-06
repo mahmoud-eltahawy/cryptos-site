@@ -205,26 +205,30 @@ async fn upload_image(data: server_fn::codec::MultipartData) -> Result<String, S
     }
     if image_data.is_empty() {
         return Err(ServerFnError::new("no data was recieved for the image"));
-    } else if image_name.is_empty() {
+    }
+    if image_name.is_empty() {
         return Err(ServerFnError::new("no name was recieved for the image"));
-    } else if image_kind.is_empty() {
+    }
+    if image_kind.is_empty() {
         return Err(ServerFnError::new("no kind was recieved for the image"));
     }
     let prefix = uuid::Uuid::new_v4().to_string();
     image_name = prefix + &image_name;
-    let bucket = "images";
+    let bucket = app_state.s3.bucket;
+    let endpoint = app_state.s3.endpoint_url;
 
     app_state
-        .s3_client
+        .s3
+        .client
         .put_object()
-        .bucket(bucket)
+        .bucket(&bucket)
         .key(&image_name)
         .body(image_data.into())
         .content_type(image_kind)
         .send()
         .await?;
 
-    Ok(format!("http://localhost:9000/{bucket}/{image_name}"))
+    Ok(format!("{endpoint}/{bucket}/{image_name}"))
 }
 
 #[island]
