@@ -168,21 +168,59 @@ pub fn AddEstate() -> impl IntoView {
 
 #[server(input = server_fn::codec::MultipartFormData)]
 async fn upload_image(data: server_fn::codec::MultipartData) -> Result<String, ServerFnError> {
-    // let app_state = use_context::<crate::AppState>()
-    //     .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
     let mut data = data.into_inner().unwrap();
-    // let client = app_state.s3_client;
+
+    let mut image_data = Vec::new();
+    let mut image_name = String::new();
+    let mut image_kind = String::new();
 
     while let Ok(Some(mut field)) = data.next_field().await {
-        println!("\n[NEXT FIELD]\n");
         let name = field.name().unwrap_or_default().to_string();
-        println!("  [NAME] {name}");
-        while let Ok(Some(chunk)) = field.chunk().await {
-            println!("      [CHUNK] {chunk:#?}", chunk = chunk.len());
-        }
+        match name.as_str() {
+            "data" => {
+                while let Ok(Some(chunk)) = field.chunk().await {
+                    image_data.extend(chunk.to_vec());
+                }
+            }
+            "image_name" => {
+                if let Ok(imgn) = field.text().await {
+                    image_name = imgn;
+                }
+            }
+            "image_kind" => {
+                if let Ok(imgk) = field.text().await {
+                    image_kind = imgk;
+                }
+            }
+            _ => (),
+        };
     }
-    Ok("https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800".to_string())
+    if image_data.is_empty() {
+        return Err(ServerFnError::new("no data was recieved for the image"));
+    } else if image_name.is_empty() {
+        return Err(ServerFnError::new("no name was recieved for the image"));
+    } else if image_kind.is_empty() {
+        return Err(ServerFnError::new("no kind was recieved for the image"));
+    }
+    let prefix = uuid::Uuid::new_v4().to_string();
+    image_name = prefix + &image_name;
+    let bucket = "images";
+
+    app_state
+        .s3_client
+        .put_object()
+        .bucket(bucket)
+        .key(&image_name)
+        .body(image_data.into())
+        .content_type(image_kind)
+        .send()
+        .await
+        .map_err(|x| dbg!(x))?;
+
+    Ok(format!("http://localhost:9000/{bucket}/{image_name}"))
 }
 
 // let _ = std::fs::write("file.png", data);
