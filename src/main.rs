@@ -1,5 +1,7 @@
 #[cfg(feature = "ssr")]
 use {
+    aws_config::BehaviorVersion,
+    aws_sdk_s3::{Client, config::Credentials},
     axum::Router,
     cryptos_site::AppState,
     cryptos_site::app::*,
@@ -13,6 +15,22 @@ use {
 };
 
 #[cfg(feature = "ssr")]
+async fn create_s3_client() -> Client {
+    let username = var("S3_USERNAME").expect("S3_USERNAME must be set in .env file");
+    let password = var("S3_PASSWORD").expect("S3_PASSWORD must be set in .env file");
+    let region = var("S3_REGION").expect("S3_REGION must be set in .env file");
+    let endpoint_url = var("S3_ENDPOINT_URL").expect("S3_ENDPOINT_URL must be set in .env file");
+    let creds = Credentials::new(username, password, None, None, "static");
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .credentials_provider(creds)
+        .region(aws_config::Region::new(region))
+        .endpoint_url(endpoint_url)
+        .load()
+        .await;
+    Client::new(&config)
+}
+
+#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     // Load environment variables
@@ -20,12 +38,6 @@ async fn main() {
 
     // Get database URL from environment
     let database_url = var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
-
-    let s3_username = var("S3_USERNAME").expect("S3_USERNAME must be set in .env file");
-    let s3_password = var("S3_PASSWORD").expect("S3_PASSWORD must be set in .env file");
-
-    dbg!(s3_username);
-    dbg!(s3_password);
 
     // Create database connection pool
     log!("Connecting to database...");
@@ -58,12 +70,13 @@ async fn main() {
         .with_secure(false) // Set to true in production with HTTPS
         .with_expiry(Expiry::OnInactivity(
             tower_sessions::cookie::time::Duration::seconds(3600),
-        )); // 1 hour
+        ));
 
     // Create app state
     let app_state = AppState {
         leptos_options: leptos_options.clone(),
         pool: pool.clone(),
+        s3_client: create_s3_client().await,
     };
 
     let app = Router::new()

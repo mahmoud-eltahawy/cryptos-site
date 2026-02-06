@@ -7,6 +7,7 @@ pub mod models;
 pub struct AppState {
     pub leptos_options: leptos::config::LeptosOptions,
     pub pool: sqlx::PgPool,
+    pub s3_client: aws_sdk_s3::Client,
 }
 
 #[cfg(feature = "ssr")]
