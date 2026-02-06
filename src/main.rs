@@ -1,21 +1,31 @@
 #[cfg(feature = "ssr")]
+use {
+    axum::Router,
+    cryptos_site::AppState,
+    cryptos_site::app::*,
+    cryptos_site::db::{create_pool, run_migrations},
+    leptos::logging::log,
+    leptos::prelude::*,
+    leptos_axum::{LeptosRoutes, generate_route_list},
+    std::env::var,
+    tower_sessions::{Expiry, SessionManagerLayer},
+    tower_sessions_sqlx_store::PostgresStore,
+};
+
+#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use axum::Router;
-    use cryptos_site::app::*;
-    use cryptos_site::db::{create_pool, run_migrations};
-    use leptos::logging::log;
-    use leptos::prelude::*;
-    use leptos_axum::{generate_route_list, LeptosRoutes};
-    use tower_sessions::{Expiry, SessionManagerLayer};
-    use tower_sessions_sqlx_store::PostgresStore;
-
     // Load environment variables
     dotenvy::dotenv().ok();
 
     // Get database URL from environment
-    let database_url = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set in .env file");
+    let database_url = var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
+
+    let s3_username = var("S3_USERNAME").expect("S3_USERNAME must be set in .env file");
+    let s3_password = var("S3_PASSWORD").expect("S3_PASSWORD must be set in .env file");
+
+    dbg!(s3_username);
+    dbg!(s3_password);
 
     // Create database connection pool
     log!("Connecting to database...");
@@ -57,18 +67,10 @@ async fn main() {
     };
 
     let app = Router::new()
-        .leptos_routes_with_context(
-            &app_state,
-            routes,
-            {
-                let pool = pool.clone();
-                move || provide_context(pool.clone())
-            },
-            {
-                let leptos_options = leptos_options.clone();
-                move || shell(leptos_options.clone())
-            },
-        )
+        .leptos_routes(&app_state, routes, {
+            let leptos_options = leptos_options.clone();
+            move || shell(leptos_options.clone())
+        })
         .fallback(leptos_axum::file_and_error_handler::<AppState, _>(shell))
         .layer(session_layer)
         .with_state(app_state);
@@ -79,13 +81,6 @@ async fn main() {
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
-}
-
-#[cfg(feature = "ssr")]
-#[derive(Clone, axum::extract::FromRef)]
-pub struct AppState {
-    pub leptos_options: leptos::config::LeptosOptions,
-    pub pool: sqlx::PgPool,
 }
 
 #[cfg(not(feature = "ssr"))]

@@ -9,10 +9,10 @@ pub mod update_user;
 
 #[server]
 async fn remove_user(target_id: Uuid) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::users::delete_user(&pool, target_id)
+    crate::db::users::delete_user(&app_state.pool, target_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect("/dashboard/manageUser");

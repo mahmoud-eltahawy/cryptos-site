@@ -5,8 +5,8 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
     use crate::auth::set_user_session;
     use tower_sessions::Session;
 
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
     let parts = use_context::<axum::http::request::Parts>()
         .ok_or_else(|| ServerFnError::new("No request parts found".to_string()))?;
@@ -18,7 +18,7 @@ async fn login(username: String, password: String) -> Result<(), ServerFnError> 
 
     let user_error = "اسم المستخدم أو كلمة السر غير صحيحة".to_string();
 
-    let user = crate::db::users::get_user_by_name(&pool, &username)
+    let user = crate::db::users::get_user_by_name(&app_state.pool, &username)
         .await
         .map_err(|_| ServerFnError::new(&user_error))?;
 

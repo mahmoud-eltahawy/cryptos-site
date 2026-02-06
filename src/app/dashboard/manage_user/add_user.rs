@@ -5,11 +5,11 @@ use crate::auth::{Level, check_auth};
 
 #[server]
 async fn add_user(name: String, level: Level, password: String) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
     let hashed = password_auth::generate_hash(password);
-    crate::db::users::create_user(&pool, name, hashed, level)
+    crate::db::users::create_user(&app_state.pool, name, hashed, level)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect("/dashboard/manageUser");

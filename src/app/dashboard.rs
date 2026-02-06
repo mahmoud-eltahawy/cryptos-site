@@ -11,13 +11,13 @@ pub mod manage_user;
 
 #[server]
 async fn get_dashboard_stats() -> Result<(usize, usize), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let users_count = crate::db::users::count_users(&pool)
+    let users_count = crate::db::users::count_users(&app_state.pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    let estates_count = crate::db::estates::count_estates(&pool)
+    let estates_count = crate::db::estates::count_estates(&app_state.pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -259,10 +259,10 @@ fn Card(
 
 #[server]
 async fn get_users_names() -> Result<Vec<(Uuid, String)>, ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let users = crate::db::users::get_all_users(&pool)
+    let users = crate::db::users::get_all_users(&app_state.pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     let xs = users
@@ -274,10 +274,10 @@ async fn get_users_names() -> Result<Vec<(Uuid, String)>, ServerFnError> {
 
 #[server]
 async fn get_user_by_id(id: uuid::Uuid) -> Result<SecureUser, ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let user = crate::db::users::get_user_by_id(&pool, id)
+    let user = crate::db::users::get_user_by_id(&app_state.pool, id)
         .await
         .ok()
         .map(SecureUser::from);

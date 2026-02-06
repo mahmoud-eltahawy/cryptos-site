@@ -4,10 +4,10 @@ use uuid::Uuid;
 
 #[server]
 async fn get_public_estates() -> Result<Vec<Estate>, ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let res = crate::db::estates::get_all_estates(&pool)
+    let res = crate::db::estates::get_all_estates(&app_state.pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(res)

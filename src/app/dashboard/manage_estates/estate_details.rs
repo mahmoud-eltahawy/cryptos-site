@@ -6,10 +6,12 @@ use crate::app::Estate;
 
 #[server]
 async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let estate = crate::db::estates::get_estate_by_id(&pool, id).await.ok();
+    let estate = crate::db::estates::get_estate_by_id(&app_state.pool, id)
+        .await
+        .ok();
     let Some(estate) = estate else {
         return Err(ServerFnError::ServerError(
             "could not find estate with id".to_string(),

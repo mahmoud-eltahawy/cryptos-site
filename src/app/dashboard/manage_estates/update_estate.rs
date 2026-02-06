@@ -8,11 +8,11 @@ use crate::app::dashboard::check_auth;
 
 #[server]
 async fn get_estate_by_id(id: uuid::Uuid) -> Result<Estate, ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let estate = crate::db::estates::get_estate_by_id(&pool, id).await.ok();
-    let Some(estate) = estate else {
+    let estate = crate::db::estates::get_estate_by_id(&app_state.pool, id).await;
+    let Ok(estate) = estate else {
         return Err(ServerFnError::ServerError(
             "could not find estate with id".to_string(),
         ));
@@ -26,10 +26,10 @@ async fn update_name(
     target_id: uuid::Uuid,
     name: String,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::update_estate_name(&pool, target_id, name)
+    crate::db::estates::update_estate_name(&app_state.pool, target_id, name)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -46,10 +46,10 @@ async fn update_address(
     target_id: uuid::Uuid,
     address: String,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::update_estate_address(&pool, target_id, address)
+    crate::db::estates::update_estate_address(&app_state.pool, target_id, address)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -66,10 +66,10 @@ async fn update_image_url(
     target_id: uuid::Uuid,
     image_url: String,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::update_estate_image_url(&pool, target_id, image_url)
+    crate::db::estates::update_estate_image_url(&app_state.pool, target_id, image_url)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -86,10 +86,10 @@ async fn update_description(
     target_id: uuid::Uuid,
     description: String,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::update_description(&pool, target_id, description)
+    crate::db::estates::update_description(&app_state.pool, target_id, description)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -106,10 +106,10 @@ async fn update_price(
     target_id: uuid::Uuid,
     price_in_cents: i64,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::update_estate_price(&pool, target_id, price_in_cents)
+    crate::db::estates::update_estate_price(&app_state.pool, target_id, price_in_cents)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -126,10 +126,10 @@ async fn update_space(
     target_id: uuid::Uuid,
     space_in_meters: i32,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::update_estate_space(&pool, target_id, space_in_meters)
+    crate::db::estates::update_estate_space(&app_state.pool, target_id, space_in_meters)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

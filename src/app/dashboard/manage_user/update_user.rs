@@ -12,10 +12,10 @@ async fn update_name(
     target_id: uuid::Uuid,
     name: String,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::users::update_user_name(&pool, target_id, name)
+    crate::db::users::update_user_name(&app_state.pool, target_id, name)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -29,11 +29,11 @@ async fn update_password(
     target_id: uuid::Uuid,
     password: String,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
     let hashed = password_auth::generate_hash(password);
-    crate::db::users::update_user_password(&pool, target_id, hashed)
+    crate::db::users::update_user_password(&app_state.pool, target_id, hashed)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -47,10 +47,10 @@ async fn update_level(
     target_id: uuid::Uuid,
     level: Level,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::users::update_user_level(&pool, target_id, level)
+    crate::db::users::update_user_level(&app_state.pool, target_id, level)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

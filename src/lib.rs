@@ -3,6 +3,13 @@ pub mod auth;
 pub mod models;
 
 #[cfg(feature = "ssr")]
+#[derive(Clone, axum::extract::FromRef)]
+pub struct AppState {
+    pub leptos_options: leptos::config::LeptosOptions,
+    pub pool: sqlx::PgPool,
+}
+
+#[cfg(feature = "ssr")]
 pub mod db;
 
 #[cfg(feature = "hydrate")]

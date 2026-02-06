@@ -12,10 +12,10 @@ pub mod update_estate;
 
 #[server]
 async fn remove_estate(id: uuid::Uuid, target_id: uuid::Uuid) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    crate::db::estates::delete_estate(&pool, target_id)
+    crate::db::estates::delete_estate(&app_state.pool, target_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     leptos_axum::redirect(&format!("/dashboard/manageEstates/{}", id));
@@ -24,10 +24,10 @@ async fn remove_estate(id: uuid::Uuid, target_id: uuid::Uuid) -> Result<(), Serv
 
 #[server]
 async fn get_estates() -> Result<Vec<Estate>, ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
-    let res = crate::db::estates::get_all_estates(&pool)
+    let res = crate::db::estates::get_all_estates(&app_state.pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(res)

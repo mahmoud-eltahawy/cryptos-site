@@ -14,11 +14,11 @@ async fn add_estate(
     price_in_cents: i64,
     space_in_meters: i32,
 ) -> Result<(), ServerFnError> {
-    let pool = use_context::<sqlx::PgPool>()
-        .ok_or_else(|| ServerFnError::new("No database pool".to_string()))?;
+    let app_state = use_context::<crate::AppState>()
+        .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
     crate::db::estates::create_estate(
-        &pool,
+        &app_state.pool,
         name,
         address,
         image_url,
