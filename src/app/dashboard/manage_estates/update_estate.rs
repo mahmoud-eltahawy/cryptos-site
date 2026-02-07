@@ -1,10 +1,8 @@
-use std::path::PathBuf;
-
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 use uuid::Uuid;
 use web_sys::wasm_bindgen::JsCast;
-use web_sys::{FormData, HtmlFormElement};
+use web_sys::{FormData, HtmlFormElement, HtmlInputElement};
 
 use crate::app::Estate;
 use crate::auth::AuthRequired;
@@ -51,6 +49,7 @@ async fn update_address(target_id: uuid::Uuid, address: String) -> Result<(), Se
 
 #[server(input = server_fn::codec::MultipartFormData)]
 async fn update_image_url(data: server_fn::codec::MultipartData) -> Result<String, ServerFnError> {
+    use std::path::PathBuf;
     let app_state = use_context::<crate::AppState>()
         .ok_or_else(|| ServerFnError::new("No App State found".to_string()))?;
 
@@ -150,12 +149,6 @@ async fn update_space(target_id: uuid::Uuid, space_in_meters: i32) -> Result<(),
 
 #[component]
 pub fn UpdateEstate() -> impl IntoView {
-    let update_name = ServerAction::<UpdateName>::new();
-    let update_address = ServerAction::<UpdateAddress>::new();
-    let update_description = ServerAction::<UpdateDescription>::new();
-    let update_price = ServerAction::<UpdatePrice>::new();
-    let update_space = ServerAction::<UpdateSpace>::new();
-
     let params = use_params_map();
     let target_id = move || {
         params
@@ -163,147 +156,169 @@ pub fn UpdateEstate() -> impl IntoView {
             .and_then(|x| Uuid::parse_str(&x).ok())
             .unwrap_or(Uuid::nil())
     };
-    let str_target_id = move || target_id().to_string();
     let target_res = Resource::new(target_id, get_estate_by_id);
 
     let target = move || target_res.get().and_then(|x| x.ok());
 
     view! {
         <AuthRequired>
-        <Suspense>
-        <ShowLet
-            some=target
-            let(Estate{id,image_url,address,name,price_in_cents,space_in_meters,description})
-        >
-        <div class="grid grid-cols-1 gap-5 text-center border-5 rounded-lg my-10 mx-5 p-1 md:p-3 lg:p-5">
-            <h1 class="text-2xl font-bold mb-5">"تحديث بيانات العقار"</h1>
-
-            <ActionForm action={update_name}>
-                <input class="hidden" type="text" value={str_target_id} name="target_id"/>
-                <div class="grid grid-cols-1 gap-2 my-5">
-                    <label
-                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
-                        for="name"
-                    >"اسم العقار"</label>
-                    <input
-                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
-                        type="text"
-                        name="name"
-                        id="name"
-                        value={name}
-                    />
-                    <input
-                        class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        type="submit"
-                        value="تحديث الاسم"
-                    />
+            <Suspense>
+                <ShowLet
+                    some=target
+                    let(Estate{id,image_url,address,name,price_in_cents,space_in_meters,description})
+                >
+                <div class="grid grid-cols-1 gap-5 text-center border-5 rounded-lg my-10 mx-5 p-1 md:p-3 lg:p-5">
+                    <h1 class="text-2xl font-bold mb-5">"تحديث بيانات العقار"</h1>
+                    <UpdateName id name/>
+                    <UpdateAddress id address/>
+                    <UpdateImage id image_url/>
+                    <UpdateDescription id description/>
+                    <UpdatePrice id price_in_cents/>
+                    <UpdateSpace id space_in_meters/>
                 </div>
-            </ActionForm>
-
-            <ActionForm action={update_address}>
-                <input class="hidden" type="text" value={str_target_id} name="target_id"/>
-                <div class="grid grid-cols-1 gap-2 my-5">
-                    <label
-                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
-                        for="address"
-                    >"العنوان"</label>
-                    <input
-                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
-                        type="text"
-                        name="address"
-                        id="address"
-                        value={address}
-                    />
-                    <input
-                        class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        type="submit"
-                        value="تحديث العنوان"
-                    />
-                </div>
-            </ActionForm>
-            <UpdateImage target_id={id} image_url={image_url}/>
-
-            <ActionForm action={update_description}>
-                <input class="hidden" type="text" value={str_target_id} name="target_id"/>
-                <div class="grid grid-cols-1 gap-2 my-5">
-                    <label
-                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
-                        for="description"
-                    >"الوصف"</label>
-                    <textarea
-                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
-                        name="description"
-                        id="description"
-                    >{description}</textarea>
-                    <input
-                        class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        type="submit"
-                        value="تحديث الوصف"
-                    />
-                </div>
-            </ActionForm>
-
-            <ActionForm action={update_price}>
-                <input class="hidden" type="text" value={str_target_id} name="target_id"/>
-                <div class="grid grid-cols-1 gap-2 my-5">
-                    <label
-                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
-                        for="price_in_cents"
-                    >"السعر (بالقرش)"</label>
-                    <input
-                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
-                        type="number"
-                        name="price_in_cents"
-                        id="price_in_cents"
-                        min="0"
-                        value={price_in_cents}
-                    />
-                    <input
-                        class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        type="submit"
-                        value="تحديث السعر"
-                    />
-                </div>
-            </ActionForm>
-
-            <ActionForm action={update_space}>
-                <input class="hidden" type="text" value={str_target_id} name="target_id"/>
-                <div class="grid grid-cols-1 gap-2 my-5">
-                    <label
-                        class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
-                        for="space_in_meters"
-                    >"المساحة (بالمتر)"</label>
-                    <input
-                        class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
-                        type="number"
-                        name="space_in_meters"
-                        id="space_in_meters"
-                        min="0"
-                        value={space_in_meters}
-                    />
-                    <input
-                        class="w-auto px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        type="submit"
-                        value="تحديث المساحة"
-                    />
-                </div>
-            </ActionForm>
-
-            <div class="mt-5">
-                <a
-                    href="/dashboard/manageEstates"
-                    class="px-6 py-2 text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >"العودة إلى إدارة العقارات"</a>
-            </div>
-        </div>
-        </ShowLet>
-        </Suspense>
+                </ShowLet>
+            </Suspense>
+            <GoBack/>
         </AuthRequired>
     }
 }
 
+#[component]
+fn GoBack() -> impl IntoView {
+    view! {
+        <div class="mt-5 grid-cols-1 text-center m-10">
+            <a
+                href="/dashboard/manageEstates"
+                class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
+            >"العودة إلى إدارة العقارات"</a>
+        </div>
+    }
+}
+
+#[component]
+fn UpdateSpace(id: uuid::Uuid, space_in_meters: i32) -> impl IntoView {
+    let action = ServerAction::<UpdateSpace>::new();
+    view! {
+        <ActionForm action={action}>
+            <input class="hidden" type="text" value={id.to_string()} name="target_id"/>
+            <div class="grid grid-cols-1 gap-2 my-5">
+                <label
+                    class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                    for="space_in_meters"
+                >"المساحة (بالمتر)"</label>
+                <input
+                    class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
+                    type="number"
+                    name="space_in_meters"
+                    id="space_in_meters"
+                    min="0"
+                    value={space_in_meters}
+                />
+                <SubmitButton content="تحديث المساحة"/>
+            </div>
+        </ActionForm>
+    }
+}
+
+#[component]
+fn UpdatePrice(id: uuid::Uuid, price_in_cents: i64) -> impl IntoView {
+    let action = ServerAction::<UpdatePrice>::new();
+
+    view! {
+        <ActionForm action={action}>
+            <input class="hidden" type="text" value={id.to_string()} name="target_id"/>
+            <div class="grid grid-cols-1 gap-2 my-5">
+                <label
+                    class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                    for="price_in_cents"
+                >"السعر (بالقرش)"</label>
+                <input
+                    class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
+                    type="number"
+                    name="price_in_cents"
+                    id="price_in_cents"
+                    min="0"
+                    value={price_in_cents}
+                />
+                <SubmitButton content="تحديث السعر"/>
+            </div>
+        </ActionForm>
+    }
+}
+
+#[component]
+fn UpdateDescription(id: uuid::Uuid, description: String) -> impl IntoView {
+    let action = ServerAction::<UpdateDescription>::new();
+    view! {
+        <ActionForm action={action}>
+            <input class="hidden" type="text" value={id.to_string()} name="target_id"/>
+            <div class="grid grid-cols-1 gap-2 my-5">
+                <label
+                    class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                    for="description"
+                >"الوصف"</label>
+                <textarea
+                    class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
+                    name="description"
+                    id="description"
+                >{description}</textarea>
+                <SubmitButton content="تحديث الوصف"/>
+            </div>
+        </ActionForm>
+    }
+}
+
+#[component]
+fn UpdateAddress(id: uuid::Uuid, address: String) -> impl IntoView {
+    let action = ServerAction::<UpdateAddress>::new();
+
+    view! {
+        <ActionForm action={action}>
+            <input class="hidden" type="text" value={id.to_string()} name="target_id"/>
+            <div class="grid grid-cols-1 gap-2 my-5">
+                <label
+                    class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                    for="address"
+                >"العنوان"</label>
+                <input
+                    class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
+                    type="text"
+                    name="address"
+                    id="address"
+                    value={address}
+                />
+                <SubmitButton content="تحديث العنوان"/>
+            </div>
+        </ActionForm>
+    }
+}
+
+#[component]
+fn UpdateName(id: uuid::Uuid, name: String) -> impl IntoView {
+    let action = ServerAction::<UpdateName>::new();
+    view! {
+        <ActionForm action={action}>
+            <input class="hidden" type="text" value={id.to_string()} name="target_id"/>
+            <div class="grid grid-cols-1 gap-2 my-5">
+                <label
+                    class="block text-sm font-bold mb-2 sm:text-base lg:text-xl"
+                    for="name"
+                >"اسم العقار"</label>
+                <input
+                    class="text-center w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:border-green-400"
+                    type="text"
+                    name="name"
+                    id="name"
+                    value={name}
+                />
+                <SubmitButton content="تحديث الاسم"/>
+            </div>
+        </ActionForm>
+    }
+}
+
 #[island]
-fn UpdateImage(target_id: uuid::Uuid, image_url: String) -> impl IntoView {
+fn UpdateImage(id: uuid::Uuid, image_url: String) -> impl IntoView {
     let url = RwSignal::new(image_url.clone());
 
     let action =
@@ -318,13 +333,27 @@ fn UpdateImage(target_id: uuid::Uuid, image_url: String) -> impl IntoView {
 
     let on_submit = move |ev: web_sys::SubmitEvent| {
         ev.prevent_default();
+
         let target = ev.target().unwrap().unchecked_into::<HtmlFormElement>();
         let form_data = FormData::new_with_form(&target).unwrap();
         action.dispatch_local(form_data);
     };
+    let default_label = "اختار الصورة البديلة";
+
+    let label_content = RwSignal::new(default_label.to_string());
+    let on_input = move |ev: web_sys::Event| {
+        let target = ev.target().unwrap().unchecked_into::<HtmlInputElement>();
+        let res = target
+            .files()
+            .and_then(|xs| xs.get(0).map(|x| x.name()))
+            .map(|x| format!("تم اختيار الصورة : {x}"))
+            .unwrap_or(default_label.to_string());
+        label_content.set(res);
+    };
+
     view! {
         <form on:submit={on_submit}>
-            <input class="hidden" type="text" value={target_id.to_string()} name="target_id"/>
+            <input class="hidden" type="text" value={id.to_string()} name="target_id"/>
             <input class="hidden" type="text" value={image_url.to_string()} name="image_url"/>
             <div class="grid grid-cols-1 gap-2 my-5 place-items-center gap-5">
                 <label
@@ -334,22 +363,35 @@ fn UpdateImage(target_id: uuid::Uuid, image_url: String) -> impl IntoView {
                 <div class="grid grid-cols-2 gap-5">
                     <img src={move || url.get()}/>
                     <div class="grid grid-cols-1 gap-5">
-                        <input
+                        <label
+                            for="data"
                             class="px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
+                        >{move || label_content.get()}</label>
+                        <input
+                            on:input={on_input}
+                            class="hidden"
                             type="file"
                             accept=".png, .jpg, .jpeg, .webp"
                             name="data"
                             id="data"
+                            placeholder="hello"
                             required
                         />
-                        <input
-                            class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            type="submit"
-                            value="تحديث الصورة"
-                        />
+                        <SubmitButton content="تحديث الصورة"/>
                     </div>
                 </div>
             </div>
         </form>
+    }
+}
+
+#[component]
+fn SubmitButton(content: &'static str) -> impl IntoView {
+    view! {
+        <input
+            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+            type="submit"
+            value={content}
+        />
     }
 }

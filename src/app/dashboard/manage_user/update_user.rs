@@ -121,5 +121,18 @@ pub fn UpdateUser() -> impl IntoView {
                 </ActionForm>
             </div>
         </AuthRequired>
+        <GoBack/>
+    }
+}
+
+#[component]
+fn GoBack() -> impl IntoView {
+    view! {
+        <div class="mt-5 grid-cols-1 text-center m-10">
+            <a
+                href="/dashboard/manageUser"
+                class="px-8 py-4 bg-white text-gray-700 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300"
+            >"العودة إلى إدارة المستخدمين"</a>
+        </div>
     }
 }
