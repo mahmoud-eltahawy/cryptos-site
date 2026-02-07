@@ -8,7 +8,7 @@ use crate::app::{
         manage_user::{ManageUser, add_user::AddUser, update_user::UpdateUser},
     },
     login::Login,
-    navbar::Footer,
+    navbar::{About, Footer},
 };
 pub use crate::models::{Estate, SecureUser};
 use features_section::FeaturesSection;
@@ -63,6 +63,7 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
                     <Route path=StaticSegment("/estates") view=PublicEstates/>
+                    <Route path=StaticSegment("/about") view=About/>
                     <Route path=path!("/dashboard/updateUser/:targetId") view=UpdateUser/>
                     <Route path=path!("/dashboard/updateEstate/:targetId") view=UpdateEstate/>
                     <Route path=path!("/dashboard/estateDetails/:targetId") view=EstateDetails/>
