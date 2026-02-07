@@ -8,6 +8,7 @@ use crate::app::{
         manage_user::{ManageUser, add_user::AddUser, update_user::UpdateUser},
     },
     login::Login,
+    navbar::Footer,
 };
 pub use crate::models::{Estate, SecureUser};
 use features_section::FeaturesSection;
@@ -57,6 +58,7 @@ pub fn App() -> impl IntoView {
         <Title text="كريبتوس للتسويق و الاستثمار و التطوير العقاري | cryptos"/>
         <Router>
             <main>
+                <Navbar/>
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("/") view=HomePage/>
                     <Route path=StaticSegment("/login") view=Login/>
@@ -70,6 +72,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/dashboard/addEstate") view=AddEstate/>
                     <Route path=path!("/dashboard") view=Dashboard/>
                 </Routes>
+                <Footer/>
             </main>
         </Router>
     }
@@ -79,28 +82,8 @@ pub fn App() -> impl IntoView {
 fn HomePage() -> impl IntoView {
     view! {
         <div class="min-h-screen">
-            <Navbar/>
             <HeroSection/>
             <FeaturesSection/>
-            <Footer/>
         </div>
-    }
-}
-
-#[component]
-fn Footer() -> impl IntoView {
-    view! {
-        <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <div class="flex items-center justify-center gap-3 mb-4">
-                    <div class="bg-gradient-to-br from-blue-600 to-purple-600 p-3 rounded-xl">
-                        <img width="40" height="40" src="black-logo.png" alt="logo" class="brightness-0 invert"/>
-                    </div>
-                    <span class="text-2xl font-bold">"Cryptos"</span>
-                </div>
-                <p class="text-gray-400 mb-2">"كريبتوس للتسويق والاستثمار والتطوير العقاري"</p>
-                <p class="text-gray-500 text-sm">"© 2024 جميع الحقوق محفوظة"</p>
-            </div>
-        </footer>
     }
 }

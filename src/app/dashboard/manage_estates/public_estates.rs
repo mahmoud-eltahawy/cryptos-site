@@ -21,7 +21,7 @@ pub fn PublicEstates() -> impl IntoView {
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                    <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 p-5">
                         "العقارات"
                     </h1>
                     <p class="text-gray-600 text-lg">"تصفح العقارات المتاحة"</p>

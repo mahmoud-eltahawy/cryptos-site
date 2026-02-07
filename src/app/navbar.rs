@@ -23,6 +23,20 @@ pub fn Navbar() -> impl IntoView {
 }
 
 #[component]
+pub fn Footer() -> impl IntoView {
+    view! {
+        <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="flex items-center justify-center gap-3 mb-4">
+                    <Logo/>
+                </div>
+                <p class="text-gray-400 mb-2">"كريبتوس للتسويق والاستثمار والتطوير العقاري"</p>
+            </div>
+        </footer>
+    }
+}
+
+#[component]
 fn Logo() -> impl IntoView {
     view! {
         <a
@@ -30,7 +44,7 @@ fn Logo() -> impl IntoView {
             href="/"
         >
             <div class="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-xl shadow-lg">
-                <img width="40" height="40" src="black-logo.png" alt="logo" class="brightness-0 invert"/>
+                <img width="40" height="40" src="/black-logo.png" alt="logo" class="brightness-0 invert"/>
             </div>
             <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 "Cryptos"
