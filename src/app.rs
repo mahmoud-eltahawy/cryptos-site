@@ -38,7 +38,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <AutoReload options=options.clone() />
                 <HydrationScripts options islands=true/>
                 <MetaTags/>
-                <link rel="icon" href="black-logo.png" type="image/png"/>
+                <link rel="icon" href="/black-logo.png" type="image/png"/>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
             </head>
